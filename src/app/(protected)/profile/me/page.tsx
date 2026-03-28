@@ -43,16 +43,25 @@ const ROLE_LABELS: Record<string, string> = {
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileData | null>(null)
+  const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("overview")
 
   useEffect(() => {
-    async function fetchProfile() {
+    async function fetchData() {
       try {
-        const res = await fetch("/api/profile")
-        if (res.ok) {
-          const data = await res.json()
-          setProfile(data.profile)
+        const [profRes, dashRes] = await Promise.all([
+          fetch("/api/profile"),
+          fetch("/api/dashboard")
+        ])
+
+        if (profRes.ok) {
+          const profData = await profRes.json()
+          setProfile(profData.profile)
+        }
+        if (dashRes.ok) {
+          const dashData = await dashRes.json()
+          setStats(dashData.stats)
         }
       } catch (err) {
         console.error("Failed to fetch profile", err)
@@ -60,7 +69,7 @@ export default function ProfilePage() {
         setLoading(false)
       }
     }
-    fetchProfile()
+    fetchData()
   }, [])
 
   const tabs = [
@@ -161,14 +170,18 @@ export default function ProfilePage() {
             </div>
 
             {/* Stats */}
-            <div className="flex items-center justify-around text-center py-2 border-y border-gray-100">
+            <div className="flex items-center justify-around text-center py-4 border-y border-gray-100">
               <div>
                 <p className="text-lg font-bold text-gray-900">{profile.currentSkills?.length || 0}</p>
                 <p className="text-xs text-gray-400">Skills</p>
               </div>
               <div>
-                <p className="text-lg font-bold text-gray-900">0</p>
+                <p className="text-lg font-bold text-gray-900">{stats?.quizzesTaken || 0}</p>
                 <p className="text-xs text-gray-400">Quizzes</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-gray-900">{(stats?.completedPlannerTasks || 0) + (stats?.boostStepsCompleted || 0)}</p>
+                <p className="text-xs text-gray-400">Tasks Done</p>
               </div>
             </div>
 
