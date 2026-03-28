@@ -10,6 +10,7 @@ import {
   Zap,
   CalendarDays, 
   Briefcase, 
+  ShieldAlert,
   Award,
   Gift,
   Settings,
@@ -25,6 +26,7 @@ const navItems = [
   { name: "Career Roadmap", href: "/career/explore", icon: Map },
   { name: "Weekly Planner", href: "/planner/weekly", icon: CalendarDays },
   { name: "Internships", href: "/opportunities/internships", icon: Briefcase },
+  { name: "Authenticity Checker", href: "/opportunities/checker", icon: ShieldAlert },
   { name: "Student Benefits", href: "/benefits", icon: Gift },
   { name: "Scholarships", href: "/scholarships/matches", icon: Award },
 ]
