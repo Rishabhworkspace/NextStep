@@ -126,7 +126,7 @@ export default function InternshipsPage() {
           <div className="max-w-2xl">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground font-heading mb-4 flex items-center gap-3">
               <Sparkles className="w-8 h-8 text-accent" />
-              Opportunities Hub
+              Internships Hub
             </h1>
             <p className="text-lg text-muted">
               Discover curated, verified year-round internships or browse freshly 
