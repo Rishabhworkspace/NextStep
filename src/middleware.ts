@@ -33,6 +33,33 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
+  // Onboarding gate: if authenticated + NOT on onboarding page + NOT an API route,
+  // check if profile exists. If not → force onboarding.
+  if (
+    isAuthenticated &&
+    !pathname.startsWith("/auth/onboarding") &&
+    !pathname.startsWith("/api") &&
+    pathname !== "/"
+  ) {
+    try {
+      const { data } = await betterFetch<{ exists: boolean }>(
+        "/api/profile/check",
+        {
+          baseURL: request.nextUrl.origin,
+          headers: {
+            cookie: request.headers.get("cookie") || "",
+          },
+        },
+      );
+
+      if (data && !data.exists) {
+        return NextResponse.redirect(new URL("/auth/onboarding", request.url));
+      }
+    } catch {
+      // If the check fails, let them through rather than blocking
+    }
+  }
+
   return NextResponse.next();
 }
 

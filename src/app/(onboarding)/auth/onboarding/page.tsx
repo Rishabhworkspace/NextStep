@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -69,8 +69,28 @@ export default function OnboardingWizard() {
   const [saving, setSaving] = useState(false)
   const [showCompletion, setShowCompletion] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [checkingProfile, setCheckingProfile] = useState(true)
   const totalSteps = 5
   const progress = (step / totalSteps) * 100
+
+  // If profile already exists, skip onboarding
+  useEffect(() => {
+    async function checkProfile() {
+      try {
+        const res = await fetch("/api/profile/check")
+        if (res.ok) {
+          const data = await res.json()
+          if (data.exists) {
+            router.replace("/dashboard")
+            return
+          }
+        }
+      } catch {}
+      setCheckingProfile(false)
+    }
+    checkProfile()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ─── Form State ──────────────────────────────────────────
   const [formData, setFormData] = useState({
@@ -145,7 +165,7 @@ export default function OnboardingWizard() {
       })
       if (!res.ok) throw new Error("Failed to save profile")
       setShowCompletion(true)
-      setTimeout(() => router.push("/dashboard"), 2500)
+      setTimeout(() => router.push("/skill-gap/quiz"), 2500)
     } catch (err) {
       console.error("Save error:", err)
       setSaving(false)
@@ -195,6 +215,17 @@ export default function OnboardingWizard() {
     if (step > 1) setStep(step - 1)
   }
 
+  if (checkingProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 animate-pulse" />
+          <p className="text-sm text-gray-400 font-medium">Checking your profile…</p>
+        </div>
+      </div>
+    )
+  }
+
   // ─── Completion Screen ───────────────────────────────────
   if (showCompletion) {
     return (
@@ -207,7 +238,7 @@ export default function OnboardingWizard() {
             </div>
           </div>
           <h1 className="text-3xl font-bold" style={{ fontFamily: "var(--font-outfit)" }}>Profile Created!</h1>
-          <p className="text-gray-500 text-lg">Your NextStep roadmap is being built…</p>
+          <p className="text-gray-500 text-lg">Taking you to the Skill Gap Quiz…</p>
           <div className="flex items-center justify-center gap-1.5 pt-2">
             <span className="block w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "0ms" }} />
             <span className="block w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: "100ms" }} />

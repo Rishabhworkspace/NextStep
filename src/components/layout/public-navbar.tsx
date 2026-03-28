@@ -4,9 +4,11 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { Menu, X } from "lucide-react"
+import { Menu, X, ArrowRight } from "lucide-react"
+import { useSession } from "@/lib/auth-client"
 
 export function PublicNavbar() {
+  const { data: session, isPending } = useSession()
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -66,14 +68,26 @@ export function PublicNavbar() {
 
         {/* Right CTA */}
         <div className="hidden md:flex items-center gap-6 z-50">
-          <Link href="/auth/login">
-            <span className="font-bold text-sm text-slate-500 hover:text-slate-900 transition-colors">Sign in</span>
-          </Link>
-          <Link href="/auth/signup">
-            <Button className="font-bold text-sm px-7 rounded-full bg-gradient-brand hover:opacity-90 transition-opacity border-0 shadow-md text-white h-11">
-              Registration Now
-            </Button>
-          </Link>
+          {isPending ? (
+            <div className="h-10 w-32 bg-slate-100 animate-pulse rounded-full" />
+          ) : session ? (
+            <Link href="/dashboard">
+              <Button className="font-bold text-sm px-6 rounded-full bg-slate-900 border-0 shadow-md text-white h-11 hover:-translate-y-0.5 transition-transform">
+                Go to Dashboard <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link href="/auth/login">
+                <span className="font-bold text-sm text-slate-500 hover:text-slate-900 transition-colors">Sign in</span>
+              </Link>
+              <Link href="/auth/signup">
+                <Button className="font-bold text-sm px-7 rounded-full bg-gradient-brand hover:opacity-90 transition-opacity border-0 shadow-md text-white h-11">
+                  Registration Now
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile Toggle */}
@@ -101,10 +115,20 @@ export function PublicNavbar() {
             </Link>
           ))}
           <div className="h-px bg-border my-4 w-full" />
-          <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>Log in</Link>
-          <Link href="/auth/signup" onClick={() => setMobileMenuOpen(false)}>
-            <Button className="w-full mt-2 h-12 text-base shadow-accent">Get Started for Free</Button>
-          </Link>
+          {session ? (
+            <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+              <Button className="w-full mt-2 h-12 text-base shadow-md bg-slate-900 text-white">
+                Go to Dashboard <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>Log in</Link>
+              <Link href="/auth/signup" onClick={() => setMobileMenuOpen(false)}>
+                <Button className="w-full mt-2 h-12 text-base shadow-accent">Get Started for Free</Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
