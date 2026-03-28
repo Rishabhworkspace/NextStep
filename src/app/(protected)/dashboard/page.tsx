@@ -200,7 +200,7 @@ export default function DashboardPage() {
                   const barH = Math.max(12, q.score)
                   const isLatest = i === quizHistory.length - 1
                   return (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-1.5 group">
+                    <div key={i} className="flex-1 flex flex-col justify-end items-center gap-1.5 group h-full max-w-[40px]">
                       <span className={`text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity ${q.score >= 70 ? 'text-emerald-600' : q.score >= 40 ? 'text-amber-600' : 'text-red-500'}`}>
                         {q.score}%
                       </span>
