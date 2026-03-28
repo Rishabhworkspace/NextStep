@@ -2,41 +2,62 @@
 
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { X, Clock } from "lucide-react"
+import { X, Clock, Loader2 } from "lucide-react"
 import { useQuizStore } from "@/stores/quizStore"
-import { getQuizQuestions } from "@/constants/questionBank"
+import { getQuizQuestions, getPathLabel } from "@/constants/questionBank"
+import type { CareerPath } from "@/constants/questionBank"
 
 export default function QuizPage() {
   const router = useRouter()
   const {
-    questions, currentIndex, answers, timeLeft, isFinished,
-    setQuestions, submitAnswer, nextQuestion, setTimeLeft, finishQuiz, reset,
+    careerPath, questions, currentIndex, answers, timeLeft, isFinished,
+    setCareerPath, setQuestions, submitAnswer, nextQuestion, setTimeLeft, finishQuiz, reset,
   } = useQuizStore()
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [showResult, setShowResult] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [showExitModal, setShowExitModal] = useState(false)
+  const [loadingProfile, setLoadingProfile] = useState(true)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Initialize quiz
+  // Fetch user profile to get targetRole
   useEffect(() => {
     reset()
-    const q = getQuizQuestions(20)
-    setQuestions(q)
-  }, [reset, setQuestions])
+    async function loadQuiz() {
+      try {
+        const res = await fetch("/api/profile")
+        if (res.ok) {
+          const data = await res.json()
+          const path = (data.profile?.targetRole || "swe") as CareerPath
+          setCareerPath(path)
+          const q = getQuizQuestions(path, 20)
+          setQuestions(q)
+        } else {
+          // Fallback to SWE if profile not found
+          setCareerPath("swe")
+          setQuestions(getQuizQuestions("swe", 20))
+        }
+      } catch {
+        setCareerPath("swe")
+        setQuestions(getQuizQuestions("swe", 20))
+      } finally {
+        setLoadingProfile(false)
+      }
+    }
+    loadQuiz()
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Timer countdown
   useEffect(() => {
-    if (isFinished || showResult || questions.length === 0) return
+    if (isFinished || showResult || questions.length === 0 || loadingProfile) return
 
     timerRef.current = setInterval(() => {
       setTimeLeft(timeLeft - 1)
     }, 1000)
 
     if (timeLeft <= 0) {
-      // Time ran out — auto-submit wrong answer and advance
-      submitAnswer(-1) // -1 = no answer
+      submitAnswer(-1)
       setShowResult(true)
       setTimeout(() => {
         setShowResult(false)
@@ -48,7 +69,7 @@ export default function QuizPage() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [timeLeft, isFinished, showResult, questions.length, setTimeLeft, submitAnswer, nextQuestion])
+  }, [timeLeft, isFinished, showResult, questions.length, loadingProfile, setTimeLeft, submitAnswer, nextQuestion])
 
   // Submit quiz when finished
   const handleSubmitQuiz = useCallback(async () => {
@@ -58,7 +79,7 @@ export default function QuizPage() {
       const res = await fetch("/api/quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers }),
+        body: JSON.stringify({ answers, careerPath }),
       })
       if (res.ok) {
         const data = await res.json()
@@ -69,7 +90,7 @@ export default function QuizPage() {
     } finally {
       setSubmitting(false)
     }
-  }, [answers, router, submitting])
+  }, [answers, careerPath, router, submitting])
 
   useEffect(() => {
     if (isFinished && answers.length > 0 && !submitting) {
@@ -91,10 +112,11 @@ export default function QuizPage() {
     }, 1200)
   }
 
-  if (questions.length === 0) {
+  if (loadingProfile || questions.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="w-8 h-8 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-3">
+        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+        <p className="text-sm text-gray-400 font-medium">Loading your personalized quiz…</p>
       </div>
     )
   }
@@ -102,7 +124,7 @@ export default function QuizPage() {
   if (isFinished) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white gap-4">
-        <div className="w-10 h-10 border-3 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
         <p className="text-gray-500 font-medium">Analyzing your results with AI…</p>
       </div>
     )
@@ -143,6 +165,15 @@ export default function QuizPage() {
           0:{timeLeft.toString().padStart(2, "0")}
         </div>
       </header>
+
+      {/* Path Badge */}
+      {careerPath && (
+        <div className="text-center pt-6">
+          <span className="inline-block px-3 py-1 rounded-full bg-gray-50 text-gray-500 text-xs font-medium border border-gray-100">
+            {getPathLabel(careerPath)} Assessment
+          </span>
+        </div>
+      )}
 
       {/* Question Area */}
       <main className="flex-1 flex flex-col items-center justify-center p-6 lg:p-12">

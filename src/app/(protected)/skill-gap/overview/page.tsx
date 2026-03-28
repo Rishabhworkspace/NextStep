@@ -6,7 +6,8 @@ import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Target, TrendingUp, Play, ChevronRight } from "lucide-react"
-import { CONCEPTS } from "@/constants/questionBank"
+import { getPathLabel } from "@/constants/questionBank"
+import type { CareerPath } from "@/constants/questionBank"
 
 // Lazy-load Recharts to avoid SSR issues
 const RadarChart = dynamic(() => import("recharts").then(m => m.RadarChart), { ssr: false })
@@ -33,6 +34,7 @@ interface ConceptScore {
 
 interface Assessment {
   _id: string
+  careerPath?: string
   totalScore: number
   totalQuestions: number
   percentage: number
@@ -71,16 +73,13 @@ export default function SkillOverviewPage() {
 
   const latestAssessment = assessments[0]
 
-  // Build radar data from latest assessment or empty defaults
-  const radarData = CONCEPTS.map(concept => {
-    const score = latestAssessment?.conceptScores?.find(cs => cs.concept === concept)
-    return {
-      concept: concept.length > 12 ? concept.substring(0, 10) + "…" : concept,
-      fullName: concept,
-      score: score?.percentage || 0,
-      fullMark: 100,
-    }
-  })
+  // Build radar data from the latest assessment's actual concept scores
+  const radarData = (latestAssessment?.conceptScores || []).map(cs => ({
+    concept: cs.concept.length > 12 ? cs.concept.substring(0, 10) + "…" : cs.concept,
+    fullName: cs.concept,
+    score: cs.percentage,
+    fullMark: 100,
+  }))
 
   // Build timeline data from assessments (reversed for chronological order)
   const timelineData = [...assessments].reverse().map((a, idx) => ({

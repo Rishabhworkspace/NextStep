@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     await dbConnect()
     const body = await request.json()
-    const { answers } = body
+    const { answers, careerPath } = body
 
     if (!answers || !Array.isArray(answers) || answers.length === 0) {
       return NextResponse.json({ error: "No answers provided" }, { status: 400 })
@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
 
     const assessment = await SkillAssessment.create({
       userId: session.user.id,
+      careerPath: careerPath || "swe",
       totalScore,
       totalQuestions,
       percentage,
