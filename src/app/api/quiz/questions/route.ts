@@ -1,36 +1,20 @@
 import { NextResponse } from "next/server"
-import connectDb from "@/lib/db/connect"
-import { QuizQuestion } from "@/lib/db/models/QuizQuestion"
+import { getQuizQuestions, CareerPath } from "@/constants/questionBank"
 
 export async function GET(req: Request) {
   try {
-    await connectDb()
-
     const { searchParams } = new URL(req.url)
     const path = searchParams.get("path") || "swe"
-    const limitParams = parseInt(searchParams.get("limit") || "20", 10)
-    const limit = isNaN(limitParams) ? 20 : Math.min(limitParams, 50) // Cap max request amount
+    const limitParams = parseInt(searchParams.get("limit") || "10", 10)
+    const limit = isNaN(limitParams) ? 10 : Math.min(limitParams, 50)
 
-    // Run an aggregation pipeline to pull a random sample ($sample) from MongoDB
-    const randomQuestions = await QuizQuestion.aggregate([
-      { $match: { careerPath: path } },
-      { $sample: { size: limit } }
-    ])
-
-    // Normalize IDs specifically for the React Frontend map functions
-    const formattedQuestions = randomQuestions.map((q) => ({
-      id: q._id.toString(),
-      concept: q.concept,
-      question: q.question,
-      options: q.options,
-      correctIndex: q.correctIndex,
-      difficulty: q.difficulty,
-    }))
+    // Fetch questions from local topic-based question bank
+    const questions = getQuizQuestions(path as CareerPath, limit)
 
     return NextResponse.json({
       success: true,
       careerPath: path,
-      questions: formattedQuestions,
+      questions: questions,
     })
   } catch (error: any) {
     console.error("Quiz Fetch Error:", error)

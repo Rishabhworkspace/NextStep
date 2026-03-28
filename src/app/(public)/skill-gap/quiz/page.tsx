@@ -39,8 +39,8 @@ export default function QuizPage() {
         
         setCareerPath(path)
 
-        // 2. Fetch Dynamic Database Questions 
-        const dbRes = await fetch(`/api/quiz/questions?path=${path}&limit=20`)
+        // 2. Fetch Topic-based Questions 
+        const dbRes = await fetch(`/api/quiz/questions?path=${path}&limit=10`)
         if (dbRes.ok) {
           const dbData = await dbRes.json()
           setQuestions(dbData.questions || [])
