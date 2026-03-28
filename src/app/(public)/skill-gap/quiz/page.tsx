@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { X, Clock, Loader2 } from "lucide-react"
 import { useQuizStore } from "@/stores/quizStore"
-import { getQuizQuestions, getPathLabel } from "@/constants/questionBank"
+import { getPathLabel } from "@/constants/questionBank"
 import type { CareerPath } from "@/constants/questionBank"
 
 export default function QuizPage() {
@@ -26,21 +26,36 @@ export default function QuizPage() {
     reset()
     async function loadQuiz() {
       try {
-        const res = await fetch("/api/profile")
-        if (res.ok) {
-          const data = await res.json()
-          const path = (data.profile?.targetRole || "swe") as CareerPath
-          setCareerPath(path)
-          const q = getQuizQuestions(path, 20)
-          setQuestions(q)
-        } else {
-          // Fallback to SWE if profile not found
-          setCareerPath("swe")
-          setQuestions(getQuizQuestions("swe", 20))
+        let path: CareerPath = "swe"
+
+        // 1. Fetch user profile targetRole
+        const profileRes = await fetch("/api/profile")
+        if (profileRes.ok) {
+          const data = await profileRes.json()
+          if (data.profile?.targetRole) {
+            path = data.profile.targetRole as CareerPath
+          }
         }
-      } catch {
+        
+        setCareerPath(path)
+
+        // 2. Fetch Dynamic Database Questions 
+        const dbRes = await fetch(`/api/quiz/questions?path=${path}&limit=20`)
+        if (dbRes.ok) {
+          const dbData = await dbRes.json()
+          setQuestions(dbData.questions || [])
+        } else {
+           // Provide basic fallback structure if the DB fails to avoid app crash
+           setQuestions([{
+             id: "1", concept: "Fallback", question: "Failed to load questions. Please check connection.",
+             options: ["A", "B", "C", "D"], correctIndex: 0, difficulty: "easy"
+           }])
+        }
+
+      } catch (error) {
+        console.error("Quiz Loading Error:", error)
         setCareerPath("swe")
-        setQuestions(getQuizQuestions("swe", 20))
+        setQuestions([])
       } finally {
         setLoadingProfile(false)
       }
