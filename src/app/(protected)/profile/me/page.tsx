@@ -1,162 +1,359 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import Image from "next/image"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Edit2, GraduationCap, Target, Briefcase, Plus, CheckCircle2 } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+  User, GraduationCap, Target, Wrench, Wallet,
+  Edit3, Download, Star, BookOpen, Award, ChevronRight
+} from "lucide-react"
+
+interface ProfileData {
+  fullName: string
+  college: string
+  degree: string
+  yearOfStudy: string
+  isFirstGen: boolean
+  cgpa: number
+  stream: string
+  confidentSubjects: string[]
+  weakSubjects: string[]
+  targetRole: string
+  companyType: string
+  timeline: string
+  currentSkills: { name: string; proficiency: number }[]
+  needsAssistance: boolean
+  incomeBracket: string
+  scholarshipPrefs: string[]
+  completionPercentage: number
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  swe: "Software Engineer",
+  ds: "Data Scientist",
+  ml: "ML Engineer",
+  design: "Product Designer",
+  pm: "Product Manager",
+  security: "Security Analyst",
+  founder: "Startup Founder",
+  consultant: "Consultant",
+}
 
 export default function ProfilePage() {
-  const completionPercentage: number = 85 // Mock data
+  const [profile, setProfile] = useState<ProfileData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState("overview")
+
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const res = await fetch("/api/profile")
+        if (res.ok) {
+          const data = await res.json()
+          setProfile(data.profile)
+        }
+      } catch (err) {
+        console.error("Failed to fetch profile", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchProfile()
+  }, [])
+
+  const tabs = [
+    { id: "overview", label: "Overview" },
+    { id: "academic", label: "Academic" },
+    { id: "career", label: "Career" },
+  ]
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-4">
+            <div className="bg-white rounded-2xl border border-gray-100 p-8 space-y-4">
+              <Skeleton className="w-20 h-20 rounded-full mx-auto" />
+              <Skeleton className="h-6 w-40 mx-auto" />
+              <Skeleton className="h-4 w-28 mx-auto" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          </div>
+          <div className="lg:col-span-8">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-64 w-full mt-4" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!profile) {
+    return (
+      <div className="max-w-lg mx-auto text-center py-20 space-y-4">
+        <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto">
+          <User className="w-8 h-8 text-orange-500" />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>No profile yet</h2>
+        <p className="text-gray-500">Complete onboarding to create your profile.</p>
+        <Link href="/auth/onboarding">
+          <Button style={{ background: "linear-gradient(90deg, #F97316, #EC4899)" }} className="text-white shadow-lg shadow-orange-500/20">
+            Start Onboarding <ChevronRight className="w-4 h-4 ml-1" />
+          </Button>
+        </Link>
+      </div>
+    )
+  }
+
+  const completionPct = profile.completionPercentage || 0
+  const initials = profile.fullName?.split(" ").map(n => n[0]).join("").toUpperCase() || "?"
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
-      
-      {/* Profile Header */}
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-border">
-        <div className="flex items-center gap-6">
-          <div className="w-24 h-24 rounded-full bg-gradient-brand flex items-center justify-center text-white text-3xl font-bold shadow-md shadow-accent/20">
-            AM
-          </div>
-          <div>
-            <h1 className="text-3xl font-heading font-bold text-text mb-1">Arjun Mehta</h1>
-            <p className="text-text-muted mb-3">arjun.m@university.edu</p>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="text-xs">
-                <GraduationCap className="w-3 h-3 mr-1" />
-                B.Tech CS, 3rd Year
-              </Badge>
-              <Badge variant="success" className="text-xs">
-                First-Gen Student
-              </Badge>
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* ─── Left Panel ────────────────────────────── */}
+        <div className="lg:col-span-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 space-y-6 lg:sticky lg:top-[80px]">
+            {/* Avatar */}
+            <div className="flex flex-col items-center text-center space-y-3">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-orange-500/20">
+                {initials}
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>{profile.fullName}</h2>
+                <p className="text-sm text-gray-500">{profile.degree}, {profile.yearOfStudy}</p>
+                <p className="text-sm text-gray-400">{profile.college}</p>
+              </div>
+              {profile.isFirstGen && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-medium border border-amber-200">
+                  <Star className="w-3 h-3" /> First-Gen Student
+                </span>
+              )}
+            </div>
+
+            {/* Success Score Placeholder */}
+            <div className="flex flex-col items-center p-4 rounded-xl bg-gray-50 border border-gray-100">
+              <div className="relative w-24 h-24">
+                <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="42" stroke="#e5e7eb" strokeWidth="8" fill="none" />
+                  <circle
+                    cx="50" cy="50" r="42"
+                    stroke="url(#scoreGrad)"
+                    strokeWidth="8"
+                    fill="none"
+                    strokeDasharray={`${completionPct * 2.64} 264`}
+                    strokeLinecap="round"
+                  />
+                  <defs>
+                    <linearGradient id="scoreGrad" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#F97316" />
+                      <stop offset="100%" stopColor="#EC4899" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <span className="absolute inset-0 flex items-center justify-center text-xl font-bold text-gray-900">
+                  {completionPct}%
+                </span>
+              </div>
+              <span className="text-xs text-gray-500 mt-2">Profile Completion</span>
+            </div>
+
+            {/* Stats */}
+            <div className="flex items-center justify-around text-center py-2 border-y border-gray-100">
+              <div>
+                <p className="text-lg font-bold text-gray-900">{profile.currentSkills?.length || 0}</p>
+                <p className="text-xs text-gray-400">Skills</p>
+              </div>
+              <div>
+                <p className="text-lg font-bold text-gray-900">0</p>
+                <p className="text-xs text-gray-400">Quizzes</p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-2">
+              <Link href="/auth/onboarding" className="w-full">
+                <Button variant="outline" className="w-full justify-start gap-2 border-gray-200 text-gray-700 hover:bg-gray-50">
+                  <Edit3 className="w-4 h-4" /> Edit Profile
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
-        <Button variant="outline" className="shrink-0 gap-2 h-10 w-full md:w-auto">
-          <Edit2 className="w-4 h-4" />
-          Edit Profile
-        </Button>
-      </div>
 
-      {/* Completion Widget */}
-      <Card className="bg-surface-alt/50 border-none shadow-none">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <h3 className="font-semibold text-text flex items-center gap-2">
-                Profile Completion
-                {completionPercentage === 100 && <CheckCircle2 className="w-4 h-4 text-success" />}
-              </h3>
-              <p className="text-xs text-text-muted mt-1">Complete your profile to unlock customized roadmaps.</p>
-            </div>
-            <span className="text-lg font-bold text-accent">{completionPercentage}%</span>
+        {/* ─── Right Panel ───────────────────────────── */}
+        <div className="lg:col-span-8 space-y-6">
+          {/* Tab Bar */}
+          <div className="border-b border-gray-100 flex gap-6">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`pb-3 text-sm font-medium transition-colors ${
+                  activeTab === tab.id
+                    ? "text-orange-500 border-b-2 border-orange-500"
+                    : "text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
-          <div className="w-full bg-surface h-2 rounded-full overflow-hidden border border-border">
-            <div 
-              className="bg-accent h-full rounded-full transition-all duration-1000" 
-              style={{ width: `${completionPercentage}%` }}
-            ></div>
-          </div>
-        </CardContent>
-      </Card>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        
-        {/* Academic Profile */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <GraduationCap className="w-5 h-5 text-accent" />
-              Academic Snapshot
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">CGPA</p>
-                <p className="font-semibold text-text text-lg">8.5 <span className="text-sm text-text-muted font-normal">/10</span></p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">Stream</p>
-                <p className="font-semibold text-text">Computer Science</p>
-              </div>
-            </div>
-            
-            <div>
-              <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">Confident In</p>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="success" className="bg-success-bg/50">Data Structures</Badge>
-                <Badge variant="success" className="bg-success-bg/50">Algorithms</Badge>
-                <Badge variant="success" className="bg-success-bg/50">Python</Badge>
-              </div>
-            </div>
+          {/* ─── Tab Content ──────────────────────────── */}
 
-            <div>
-              <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">Needs Improvement</p>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="warning" className="bg-warning-bg/50">System Design</Badge>
-                <Badge variant="warning" className="bg-warning-bg/50">React.js</Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Career & Skills */}
-        <div className="space-y-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Target className="w-5 h-5 text-accent" />
-                Career Goal
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">Target Role</p>
-                  <p className="font-semibold text-text text-lg">Full Stack Engineer</p>
+          {activeTab === "overview" && (
+            <div className="space-y-6 animate-fade-in">
+              {/* Career Goal */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
+                <div className="flex items-center gap-2 text-gray-900 font-semibold" style={{ fontFamily: "var(--font-outfit)" }}>
+                  <Target className="w-5 h-5 text-orange-500" /> Career Goal
                 </div>
-                <div className="flex gap-4">
-                  <div>
-                    <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">Company Type</p>
-                    <p className="font-medium text-text">MNC / Big Tech</p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-xs text-gray-400 mb-1">Target Role</p>
+                    <p className="text-sm font-semibold text-gray-900">{ROLE_LABELS[profile.targetRole] || profile.targetRole || "—"}</p>
                   </div>
-                  <div>
-                    <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">Timeline</p>
-                    <p className="font-medium text-text">Next 12 months</p>
+                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-xs text-gray-400 mb-1">Company Type</p>
+                    <p className="text-sm font-semibold text-gray-900">{profile.companyType || "—"}</p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-xs text-gray-400 mb-1">Timeline</p>
+                    <p className="text-sm font-semibold text-gray-900">{profile.timeline || "—"}</p>
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Briefcase className="w-5 h-5 text-accent" />
-                Current Skills
-              </CardTitle>
-              <Button size="icon" variant="ghost" className="h-8 w-8">
-                <Plus className="w-4 h-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[
-                  { name: 'JavaScript', prof: 80 },
-                  { name: 'React', prof: 40 },
-                  { name: 'Node.js', prof: 60 }
-                ].map(skill => (
-                  <div key={skill.name}>
-                    <div className="flex justify-between text-sm mb-1.5">
-                      <span className="font-medium text-text">{skill.name}</span>
-                      <span className="text-text-muted">{skill.prof}%</span>
-                    </div>
-                    <div className="h-1.5 w-full bg-surface-alt rounded-full overflow-hidden">
-                      <div className="h-full bg-accent rounded-full" style={{ width: `${skill.prof}%` }}></div>
+              {/* Background */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-3">
+                <div className="flex items-center gap-2 text-gray-900 font-semibold" style={{ fontFamily: "var(--font-outfit)" }}>
+                  <User className="w-5 h-5 text-orange-500" /> Background
+                </div>
+                <div className="flex flex-wrap gap-2 text-sm text-gray-600">
+                  {profile.isFirstGen && <span className="px-3 py-1 bg-amber-50 text-amber-700 rounded-full border border-amber-200 text-xs font-medium">First-Gen Student</span>}
+                  {profile.stream && <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200 text-xs font-medium">{profile.stream}</span>}
+                  {profile.cgpa > 0 && <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200 text-xs font-medium">CGPA: {profile.cgpa}/10</span>}
+                  {profile.needsAssistance && <span className="px-3 py-1 bg-rose-50 text-rose-700 rounded-full border border-rose-200 text-xs font-medium">Needs Financial Aid</span>}
+                </div>
+              </div>
+
+              {/* Weak Areas */}
+              {profile.weakSubjects && profile.weakSubjects.length > 0 && (
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-3">
+                  <div className="flex items-center gap-2 text-gray-900 font-semibold" style={{ fontFamily: "var(--font-outfit)" }}>
+                    <BookOpen className="w-5 h-5 text-orange-500" /> Focus Areas
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.weakSubjects.map(s => (
+                      <span key={s} className="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg border border-amber-200 text-xs font-medium">{s}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "academic" && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+                <div className="flex items-center gap-2 text-gray-900 font-semibold" style={{ fontFamily: "var(--font-outfit)" }}>
+                  <GraduationCap className="w-5 h-5 text-orange-500" /> Academic Profile
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-xs text-gray-400 mb-1">CGPA</p>
+                    <p className="text-2xl font-bold text-gray-900">{profile.cgpa || "—"}<span className="text-sm text-gray-400">/10</span></p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                    <p className="text-xs text-gray-400 mb-1">Stream</p>
+                    <p className="text-sm font-semibold text-gray-900">{profile.stream || "—"}</p>
+                  </div>
+                </div>
+
+                {profile.confidentSubjects && profile.confidentSubjects.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-gray-700">Strong Subjects</p>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.confidentSubjects.map(s => (
+                        <span key={s} className="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200 text-xs font-medium">{s}</span>
+                      ))}
                     </div>
                   </div>
-                ))}
+                )}
+
+                {profile.weakSubjects && profile.weakSubjects.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-gray-700">Weak Subjects</p>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.weakSubjects.map(s => (
+                        <span key={s} className="px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg border border-amber-200 text-xs font-medium">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          )}
+
+          {activeTab === "career" && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
+                <div className="flex items-center gap-2 text-gray-900 font-semibold" style={{ fontFamily: "var(--font-outfit)" }}>
+                  <Target className="w-5 h-5 text-orange-500" /> Career Path
+                </div>
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-100">
+                    <p className="text-xs text-orange-500 mb-1 font-medium">TARGET ROLE</p>
+                    <p className="text-lg font-bold text-gray-900">{ROLE_LABELS[profile.targetRole] || profile.targetRole || "Not set"}</p>
+                    <p className="text-sm text-gray-500 mt-1">{profile.companyType} · {profile.timeline}</p>
+                  </div>
+                </div>
+
+                {profile.currentSkills && profile.currentSkills.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-gray-900 font-semibold" style={{ fontFamily: "var(--font-outfit)" }}>
+                      <Wrench className="w-5 h-5 text-orange-500" /> Skills
+                    </div>
+                    <div className="space-y-3">
+                      {profile.currentSkills.map(skill => (
+                        <div key={skill.name} className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span className="font-medium text-gray-800">{skill.name}</span>
+                            <span className="text-gray-400 text-xs font-mono">{skill.proficiency}%</span>
+                          </div>
+                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all duration-1000"
+                              style={{
+                                width: `${skill.proficiency}%`,
+                                background: "linear-gradient(90deg, #F97316, #EC4899)"
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {profile.scholarshipPrefs && profile.scholarshipPrefs.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-gray-900 font-semibold" style={{ fontFamily: "var(--font-outfit)" }}>
+                      <Award className="w-5 h-5 text-orange-500" /> Scholarship Preferences
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.scholarshipPrefs.map(s => (
+                        <span key={s} className="px-3 py-1.5 bg-orange-50 text-orange-700 rounded-lg border border-orange-200 text-xs font-medium">{s}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
