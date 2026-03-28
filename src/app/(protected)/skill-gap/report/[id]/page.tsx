@@ -135,16 +135,7 @@ export default function QuizReportPage() {
       </div>
 
       {/* Gemini AI Insight */}
-      {assessment.geminiInsight && (
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-100 space-y-2">
-          <div className="flex items-center gap-2 text-sm font-semibold text-orange-600">
-            <Sparkles className="w-4 h-4" /> AI Insight
-          </div>
-          <p className="text-sm text-gray-700 leading-relaxed italic">
-            {assessment.geminiInsight}
-          </p>
-        </div>
-      )}
+      <InsightBlock assessmentId={assessment._id} initialInsight={assessment.geminiInsight} />
 
       {/* Per-Concept Breakdown */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
@@ -203,6 +194,63 @@ export default function QuizReportPage() {
           View Overview <ChevronRight className="w-4 h-4 ml-1" />
         </Button>
       </div>
+    </div>
+  )
+}
+
+// ─── Inline Insight Block (Polls for AI insight if not yet ready) ─────────────
+
+function InsightBlock({ assessmentId, initialInsight }: { assessmentId: string; initialInsight: string }) {
+  const [insight, setInsight] = useState(initialInsight)
+  const [polling, setPolling] = useState(!initialInsight)
+
+  useEffect(() => {
+    if (insight) return // Already have it
+
+    let attempts = 0
+    const maxAttempts = 10 // poll for max ~20 seconds
+
+    const interval = setInterval(async () => {
+      attempts++
+      try {
+        const res = await fetch(`/api/quiz/${assessmentId}`)
+        if (res.ok) {
+          const data = await res.json()
+          if (data.assessment?.geminiInsight) {
+            setInsight(data.assessment.geminiInsight)
+            setPolling(false)
+            clearInterval(interval)
+          }
+        }
+      } catch {}
+
+      if (attempts >= maxAttempts) {
+        setPolling(false)
+        clearInterval(interval)
+      }
+    }, 2000)
+
+    return () => clearInterval(interval)
+  }, [assessmentId, insight])
+
+  if (!insight && !polling) return null
+
+  return (
+    <div className="p-5 rounded-2xl bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-100 space-y-2">
+      <div className="flex items-center gap-2 text-sm font-semibold text-orange-600">
+        <Sparkles className="w-4 h-4" /> AI Insight
+      </div>
+      {insight ? (
+        <p className="text-sm text-gray-700 leading-relaxed italic">
+          {insight}
+        </p>
+      ) : (
+        <div className="space-y-2 animate-pulse">
+          <div className="h-3 bg-orange-100 rounded-full w-full" />
+          <div className="h-3 bg-orange-100 rounded-full w-4/5" />
+          <div className="h-3 bg-orange-100 rounded-full w-3/5" />
+        </div>
+      )}
     </div>
   )
 }

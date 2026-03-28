@@ -48,14 +48,7 @@ export async function POST(request: NextRequest) {
       percentage: Math.round((data.correct / data.total) * 100),
     }))
 
-    // Get Gemini insight (non-blocking fallback)
-    let geminiInsight = ""
-    try {
-      geminiInsight = await getSkillGapInsight(conceptScores, percentage)
-    } catch {
-      geminiInsight = "Keep practicing! Focus on your weak areas and retake the quiz."
-    }
-
+    // Save assessment IMMEDIATELY without waiting for AI insight
     const assessment = await SkillAssessment.create({
       userId: session.user.id,
       careerPath: careerPath || "swe",
@@ -65,8 +58,23 @@ export async function POST(request: NextRequest) {
       level,
       conceptScores,
       answers,
-      geminiInsight,
+      geminiInsight: "",
     })
+
+    // Fire-and-forget: generate AI insight in background, update DB when done
+    getSkillGapInsight(conceptScores, percentage)
+      .then(async (insight) => {
+        try {
+          await SkillAssessment.findByIdAndUpdate(assessment._id, { geminiInsight: insight })
+        } catch (e) {
+          console.error("Failed to save AI insight:", e)
+        }
+      })
+      .catch(() => {
+        SkillAssessment.findByIdAndUpdate(assessment._id, {
+          geminiInsight: "Keep practicing! Focus on your weak areas and retake the quiz.",
+        }).catch(() => {})
+      })
 
     return NextResponse.json({ success: true, assessmentId: assessment._id }, { status: 200 })
   } catch (error) {
