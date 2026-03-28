@@ -5,6 +5,7 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { PublicFooter } from "@/components/layout/public-footer"
 import { ArrowRight, Target, Map, Calendar, ShieldCheck, CheckCircle2, Star, PlayCircle, Trophy, Sparkles, BookOpen, Layers, Users, ChevronDown, Check } from "lucide-react"
 
 export default function LandingPage() {
@@ -506,6 +507,7 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <PublicFooter />
     </div>
   )
 }
