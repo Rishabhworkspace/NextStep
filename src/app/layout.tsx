@@ -20,7 +20,21 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "NextStep | Your AI Student Success Platform",
-  description: "Skill gap analysis, AI roadmaps, planner, and verified opportunities for first-generation students.",
+  description: "Skill gap analysis, AI roadmaps, weekly planner, and verified opportunities for first-generation students in India.",
+  keywords: ["student platform", "skill gap", "career roadmap", "internships", "scholarships", "AI planner", "first generation students"],
+  authors: [{ name: "NextStep" }],
+  openGraph: {
+    type: "website",
+    title: "NextStep — AI-Powered Student Success Platform",
+    description: "Take the skill gap quiz, get a personalized career roadmap, and discover 150+ student benefits — all for free.",
+    siteName: "NextStep",
+    locale: "en_IN",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "NextStep — AI-Powered Student Success Platform",
+    description: "Take the skill gap quiz, get a personalized career roadmap, and discover 150+ student benefits — all for free.",
+  },
 };
 
 export default function RootLayout({

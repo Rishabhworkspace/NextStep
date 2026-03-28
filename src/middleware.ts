@@ -17,8 +17,14 @@ export async function middleware(request: NextRequest) {
 
   const isAuthenticated = !!session;
 
+  // Public routes that don't require authentication
+  const isPublicRoute =
+    pathname === "/" ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/skill-gap/quiz");
+
   // Protected routes require authentication
-  if (!isAuthenticated && pathname !== "/" && !pathname.startsWith("/auth")) {
+  if (!isAuthenticated && !isPublicRoute) {
     return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
