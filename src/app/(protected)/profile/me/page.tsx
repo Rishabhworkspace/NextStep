@@ -1,13 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
+import { toast } from "sonner"
 import {
   User, GraduationCap, Target, Wrench, Wallet,
-  Edit3, Download, Star, BookOpen, Award, ChevronRight
+  Edit3, Save, X, Star, BookOpen, Award, ChevronRight
 } from "lucide-react"
 
 interface ProfileData {
@@ -37,15 +38,27 @@ const ROLE_LABELS: Record<string, string> = {
   design: "Product Designer",
   pm: "Product Manager",
   security: "Security Analyst",
-  founder: "Startup Founder",
-  consultant: "Consultant",
+  fullstack: "Full Stack Developer",
+  devops: "DevOps Engineer",
+  mobile: "Mobile App Developer",
+  cloud: "Cloud Architect",
+  blockchain: "Blockchain Developer",
+  gamedev: "Game Developer",
+  ba: "Business Analyst",
+  marketing: "Digital Marketer",
 }
+
+const STREAMS = ["Computer Science", "Electronics", "Mechanical", "Civil", "Data Science", "Business", "Design", "Other"]
+const YEARS = ["1st Year", "2nd Year", "3rd Year", "4th Year", "Graduated"]
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [stats, setStats] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("overview")
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [editData, setEditData] = useState<Partial<ProfileData>>({})
 
   useEffect(() => {
     async function fetchData() {
@@ -71,6 +84,46 @@ export default function ProfilePage() {
     }
     fetchData()
   }, [])
+
+  function startEditing() {
+    if (profile) {
+      setEditData({
+        fullName: profile.fullName,
+        college: profile.college,
+        degree: profile.degree,
+        yearOfStudy: profile.yearOfStudy,
+        cgpa: profile.cgpa,
+        stream: profile.stream,
+        targetRole: profile.targetRole,
+        companyType: profile.companyType,
+        timeline: profile.timeline,
+      })
+      setEditing(true)
+    }
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    try {
+      const res = await fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...profile, ...editData }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setProfile(data.profile)
+        setEditing(false)
+        toast.success("Profile updated successfully!")
+      } else {
+        toast.error("Failed to save profile")
+      }
+    } catch {
+      toast.error("Failed to save profile")
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const tabs = [
     { id: "overview", label: "Overview" },
@@ -131,9 +184,43 @@ export default function ProfilePage() {
                 {initials}
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>{profile.fullName}</h2>
-                <p className="text-sm text-gray-500">{profile.degree}, {profile.yearOfStudy}</p>
-                <p className="text-sm text-gray-400">{profile.college}</p>
+                {editing ? (
+                  <Input
+                    value={editData.fullName || ""}
+                    onChange={e => setEditData(p => ({ ...p, fullName: e.target.value }))}
+                    className="text-center text-lg font-bold h-10 border-orange-200 focus:border-orange-400"
+                  />
+                ) : (
+                  <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>{profile.fullName}</h2>
+                )}
+                {editing ? (
+                  <div className="space-y-2 mt-2">
+                    <Input
+                      placeholder="Degree"
+                      value={editData.degree || ""}
+                      onChange={e => setEditData(p => ({ ...p, degree: e.target.value }))}
+                      className="h-9 text-sm border-gray-200"
+                    />
+                    <select
+                      value={editData.yearOfStudy || ""}
+                      onChange={e => setEditData(p => ({ ...p, yearOfStudy: e.target.value }))}
+                      className="w-full h-9 text-sm rounded-md border border-gray-200 bg-gray-50 px-3"
+                    >
+                      {YEARS.map(y => <option key={y}>{y}</option>)}
+                    </select>
+                    <Input
+                      placeholder="College"
+                      value={editData.college || ""}
+                      onChange={e => setEditData(p => ({ ...p, college: e.target.value }))}
+                      className="h-9 text-sm border-gray-200"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-500">{profile.degree}, {profile.yearOfStudy}</p>
+                    <p className="text-sm text-gray-400">{profile.college}</p>
+                  </>
+                )}
               </div>
               {profile.isFirstGen && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-medium border border-amber-200">
@@ -142,7 +229,7 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {/* Success Score Placeholder */}
+            {/* Completion Ring */}
             <div className="flex flex-col items-center p-4 rounded-xl bg-gray-50 border border-gray-100">
               <div className="relative w-24 h-24">
                 <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
@@ -187,11 +274,26 @@ export default function ProfilePage() {
 
             {/* Actions */}
             <div className="space-y-2">
-              <Link href="/auth/onboarding" className="w-full">
-                <Button variant="outline" className="w-full justify-start gap-2 border-gray-200 text-gray-700 hover:bg-gray-50">
+              {editing ? (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="flex-1 text-white shadow-lg shadow-orange-500/20"
+                    style={{ background: "linear-gradient(90deg, #F97316, #EC4899)" }}
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {saving ? "Saving…" : "Save Changes"}
+                  </Button>
+                  <Button variant="outline" onClick={() => setEditing(false)} className="border-gray-200">
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <Button variant="outline" onClick={startEditing} className="w-full justify-start gap-2 border-gray-200 text-gray-700 hover:bg-gray-50">
                   <Edit3 className="w-4 h-4" /> Edit Profile
                 </Button>
-              </Link>
+              )}
             </div>
           </div>
         </div>
@@ -224,18 +326,46 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-2 text-gray-900 font-semibold" style={{ fontFamily: "var(--font-outfit)" }}>
                   <Target className="w-5 h-5 text-orange-500" /> Career Goal
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
                     <p className="text-xs text-gray-400 mb-1">Target Role</p>
-                    <p className="text-sm font-semibold text-gray-900">{ROLE_LABELS[profile.targetRole] || profile.targetRole || "—"}</p>
+                    {editing ? (
+                      <select
+                        value={editData.targetRole || ""}
+                        onChange={e => setEditData(p => ({ ...p, targetRole: e.target.value }))}
+                        className="w-full h-8 text-sm rounded-md border border-gray-200 bg-white px-2"
+                      >
+                        {Object.entries(ROLE_LABELS).map(([val, label]) => (
+                          <option key={val} value={val}>{label}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="text-sm font-semibold text-gray-900">{ROLE_LABELS[profile.targetRole] || profile.targetRole || "—"}</p>
+                    )}
                   </div>
                   <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
                     <p className="text-xs text-gray-400 mb-1">Company Type</p>
-                    <p className="text-sm font-semibold text-gray-900">{profile.companyType || "—"}</p>
+                    {editing ? (
+                      <Input
+                        value={editData.companyType || ""}
+                        onChange={e => setEditData(p => ({ ...p, companyType: e.target.value }))}
+                        className="h-8 text-sm border-gray-200"
+                      />
+                    ) : (
+                       <p className="text-sm font-semibold text-gray-900">{profile.companyType || "—"}</p>
+                    )}
                   </div>
                   <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
                     <p className="text-xs text-gray-400 mb-1">Timeline</p>
-                    <p className="text-sm font-semibold text-gray-900">{profile.timeline || "—"}</p>
+                    {editing ? (
+                      <Input
+                        value={editData.timeline || ""}
+                        onChange={e => setEditData(p => ({ ...p, timeline: e.target.value }))}
+                        className="h-8 text-sm border-gray-200"
+                      />
+                    ) : (
+                      <p className="text-sm font-semibold text-gray-900">{profile.timeline || "—"}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -278,11 +408,30 @@ export default function ProfilePage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
                     <p className="text-xs text-gray-400 mb-1">CGPA</p>
-                    <p className="text-2xl font-bold text-gray-900">{profile.cgpa || "—"}<span className="text-sm text-gray-400">/10</span></p>
+                    {editing ? (
+                      <Input
+                        type="number" step="0.1" min="0" max="10"
+                        value={editData.cgpa || ""}
+                        onChange={e => setEditData(p => ({ ...p, cgpa: parseFloat(e.target.value) || 0 }))}
+                        className="h-8 text-sm border-gray-200"
+                      />
+                    ) : (
+                      <p className="text-2xl font-bold text-gray-900">{profile.cgpa || "—"}<span className="text-sm text-gray-400">/10</span></p>
+                    )}
                   </div>
                   <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
                     <p className="text-xs text-gray-400 mb-1">Stream</p>
-                    <p className="text-sm font-semibold text-gray-900">{profile.stream || "—"}</p>
+                    {editing ? (
+                      <select
+                        value={editData.stream || ""}
+                        onChange={e => setEditData(p => ({ ...p, stream: e.target.value }))}
+                        className="w-full h-8 text-sm rounded-md border border-gray-200 bg-white px-2"
+                      >
+                        {STREAMS.map(s => <option key={s}>{s}</option>)}
+                      </select>
+                    ) : (
+                      <p className="text-sm font-semibold text-gray-900">{profile.stream || "—"}</p>
+                    )}
                   </div>
                 </div>
 

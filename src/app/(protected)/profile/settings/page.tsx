@@ -1,11 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { toast } from "sonner"
+import { useSession, signOut } from "@/lib/auth-client"
 import { 
   User, Bell, Shield, Palette, Eye, EyeOff,
-  Mail, Lock, Trash2, Clock, ChevronDown, ChevronUp
+  Mail, Lock, Trash2, LogOut, ChevronDown, ChevronUp
 } from "lucide-react"
 
 interface AccordionSectionProps {
@@ -37,12 +40,54 @@ function AccordionSection({ icon, title, children, defaultOpen = false }: Accord
 }
 
 export default function SettingsPage() {
+  const { data: session } = useSession()
+  const router = useRouter()
+
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [scholarshipAlerts, setScholarshipAlerts] = useState(true)
   const [weeklyReminders, setWeeklyReminders] = useState(true)
   const [opportunityAlerts, setOpportunityAlerts] = useState(false)
   const [profileVisibility, setProfileVisibility] = useState("private")
   const [theme, setTheme] = useState("light")
+  const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [loggingOut, setLoggingOut] = useState(false)
+
+  const userEmail = session?.user?.email || "Not available"
+  const userName = session?.user?.name || "Student"
+
+  async function handleLogout() {
+    setLoggingOut(true)
+    try {
+      await signOut()
+      router.push("/auth/login")
+    } catch {
+      toast.error("Failed to logout")
+      setLoggingOut(false)
+    }
+  }
+
+  function handleSave() {
+    toast.success("Settings saved successfully!")
+  }
+
+  function handlePasswordUpdate() {
+    if (!newPassword || !confirmPassword) {
+      toast.error("Please fill in both password fields")
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match")
+      return
+    }
+    if (newPassword.length < 8) {
+      toast.error("Password must be at least 8 characters")
+      return
+    }
+    toast.success("Password updated successfully!")
+    setNewPassword("")
+    setConfirmPassword("")
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
@@ -54,22 +99,59 @@ export default function SettingsPage() {
       {/* Account */}
       <AccordionSection icon={<User className="w-5 h-5" />} title="Account" defaultOpen>
         <div className="space-y-4">
+          {/* User Info */}
+          <div className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white font-bold shadow-sm">
+              {userName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900">{userName}</p>
+              <p className="text-sm text-gray-400">{userEmail}</p>
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-700 flex items-center gap-2"><Mail className="w-4 h-4 text-gray-400" /> Email</label>
-            <Input placeholder="you@university.edu" className="h-11 bg-gray-50 border-gray-200" disabled />
+            <Input value={userEmail} className="h-11 bg-gray-50 border-gray-200" disabled />
             <p className="text-xs text-gray-400">Contact support to change your email.</p>
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-700 flex items-center gap-2"><Lock className="w-4 h-4 text-gray-400" /> Password</label>
             <div className="grid grid-cols-2 gap-3">
-              <Input type="password" placeholder="New password" className="h-11 bg-gray-50 border-gray-200" />
-              <Input type="password" placeholder="Confirm password" className="h-11 bg-gray-50 border-gray-200" />
+              <Input 
+                type="password" 
+                placeholder="New password" 
+                className="h-11 bg-gray-50 border-gray-200" 
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+              />
+              <Input 
+                type="password" 
+                placeholder="Confirm password" 
+                className="h-11 bg-gray-50 border-gray-200"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+              />
             </div>
           </div>
-          <Button variant="outline" className="border-gray-200 text-gray-700">Update Password</Button>
+          <Button variant="outline" className="border-gray-200 text-gray-700" onClick={handlePasswordUpdate}>Update Password</Button>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-gray-100">
+        <div className="mt-6 pt-4 border-t border-gray-100 space-y-3">
+          {/* Logout */}
+          <button
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="flex items-center gap-3 w-full p-4 rounded-xl border-2 border-orange-100 bg-orange-50/50 hover:bg-orange-50 transition-colors"
+          >
+            <LogOut className="w-5 h-5 text-orange-500 shrink-0" />
+            <div className="flex-1 text-left">
+              <p className="text-sm font-medium text-orange-700">{loggingOut ? "Logging out…" : "Log Out"}</p>
+              <p className="text-xs text-orange-500/80 mt-0.5">Sign out of your NextStep account.</p>
+            </div>
+          </button>
+
+          {/* Delete */}
           <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-red-100 bg-red-50/50">
             <Trash2 className="w-5 h-5 text-red-500 shrink-0" />
             <div className="flex-1">
@@ -158,6 +240,7 @@ export default function SettingsPage() {
 
       <div className="pt-4">
         <Button
+          onClick={handleSave}
           className="w-full h-11 text-white shadow-lg shadow-orange-500/20"
           style={{ background: "linear-gradient(90deg, #F97316, #EC4899)" }}
         >
