@@ -20,22 +20,37 @@ export async function POST(req: Request) {
 
     let textToAnalyze = description
 
-    // If URL is provided and we don't have text, use Firecrawl to extract content
+    // If URL is provided and we don't have text, extract content
     if (url && !description) {
-      const response = await fetch("https://api.firecrawl.dev/v1/scrape", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${process.env.FIRECRAWL_API_KEY}`,
-        },
-        body: JSON.stringify({ url, formats: ["markdown"] }),
-      })
+      try {
+        const response = await fetch("https://api.firecrawl.dev/v1/scrape", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.FIRECRAWL_API_KEY}`,
+          },
+          body: JSON.stringify({ url, formats: ["markdown"] }),
+        })
 
-      if (!response.ok) throw new Error("Failed to scrape internship URL.")
-      const data = await response.json()
-      textToAnalyze = data.data.markdown || ""
+        if (!response.ok) throw new Error("Firecrawl blocked");
+        const data = await response.json()
+        textToAnalyze = data.data.markdown || ""
+      } catch (err) {
+        console.log("Firecrawl failed, trying fallback to Jina...");
+        const jinaRes = await fetch(`https://r.jina.ai/${url}`, {
+          headers: {
+            "X-Return-Format": "markdown"
+          }
+        });
+        if (!jinaRes.ok) {
+          throw new Error("Failed to scrape internship URL. LinkedIn and similar sites aggressively block AI scrapers. Please use the 'Paste Text' option instead.");
+        }
+        textToAnalyze = await jinaRes.text();
+      }
       
-      if (textToAnalyze.length < 50) throw new Error("Could not extract enough readable content from this URL.")
+      if (textToAnalyze.length < 50) {
+        throw new Error("Could not extract enough readable content from this URL. The site may be protected by a login wall or captcha. Please use the 'Paste Text' option instead.");
+      }
     }
 
     // Call Hugging Face BERT model
