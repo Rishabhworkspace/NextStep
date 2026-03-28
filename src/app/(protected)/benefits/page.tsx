@@ -4,7 +4,8 @@ import { useState, useMemo } from "react"
 import {
   Search, ExternalLink, Gift, Music, Monitor, GraduationCap,
   Shirt, Heart, Plane, UtensilsCrossed, Landmark, Tag, 
-  ChevronDown, ChevronUp, Star, Sparkles, Filter
+  ChevronRight, Star, Sparkles, Filter, ArrowUpRight, CheckCircle2,
+  Code, Target
 } from "lucide-react"
 
 // ─── All Benefit Data (Parsed from docx) ─────────────────────────
@@ -256,8 +257,7 @@ const SECTIONS: Section[] = [
 // ─── Component ───────────────────────────────────────────────
 export default function StudentBenefitsPage() {
   const [searchQuery, setSearchQuery] = useState("")
-  const [activeSection, setActiveSection] = useState<string | null>(null)
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(SECTIONS.map(s => s.id)))
+  const [activeSection, setActiveSection] = useState<string>("all")
 
   const totalBenefits = SECTIONS.reduce((acc, s) => acc + s.benefits.length, 0)
 
@@ -276,201 +276,226 @@ export default function StudentBenefitsPage() {
     })).filter(s => s.benefits.length > 0)
   }, [searchQuery])
 
-  const displaySections = activeSection
-    ? filteredSections.filter(s => s.id === activeSection)
-    : filteredSections
-
-  const toggleSection = (id: string) => {
-    setExpandedSections(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
+  const displaySections = activeSection === "all"
+    ? filteredSections
+    : filteredSections.filter(s => s.id === activeSection)
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Hero Header */}
-      <div className="bg-surface border-b border-border">
-        <div className="container mx-auto px-4 py-12">
+      {/* Premium Hero Header */}
+      <div className="relative overflow-hidden bg-surface border-b border-border">
+        {/* Background Mesh Gradients */}
+        <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-96 h-96 bg-accent/10 rounded-full blur-3xl opacity-50" />
+        <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl opacity-50" />
+        
+        <div className="container relative z-10 mx-auto px-4 py-16 md:py-20">
           <div className="max-w-3xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-accent to-pink-500 flex items-center justify-center shadow-lg shadow-accent/20">
-                <Gift className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground font-heading">
-                  Student Benefits
-                </h1>
-                <p className="text-sm text-muted">India Edition • 2025–2026</p>
-              </div>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 text-accent text-xs font-bold mb-6 border border-accent/20">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Verified India Edition • 2025–2026</span>
             </div>
-            <p className="text-lg text-muted mt-3">
-              {totalBenefits}+ verified discounts, free tools, and exclusive deals curated specifically for Indian students — from tech packs to travel fares.
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-foreground font-heading tracking-tight mb-4">
+              The <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-purple-600">Student Arsenal</span>
+            </h1>
+            <p className="text-lg md:text-xl text-muted max-w-2xl leading-relaxed mb-10">
+              Stop paying full price. Access {totalBenefits}+ highly curated discounts, incredibly powerful free tools, and exclusive student-only deals.
             </p>
 
-            {/* Quick Stats */}
-            <div className="flex flex-wrap gap-3 mt-6">
-              {SECTIONS.map(s => (
-                <button
-                  key={s.id}
-                  onClick={() => setActiveSection(activeSection === s.id ? null : s.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                    activeSection === s.id
-                      ? `${s.bgColor} ${s.color} ${s.borderColor} shadow-sm`
-                      : "bg-surface border-border text-muted hover:border-accent/30"
-                  }`}
-                >
-                  <s.icon className="w-3.5 h-3.5" />
-                  {s.title}
-                  <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] ${activeSection === s.id ? "bg-white/80 text-gray-700" : "bg-surface-alt text-muted"}`}>
-                    {s.benefits.length}
-                  </span>
-                </button>
-              ))}
-              {activeSection && (
-                <button
-                  onClick={() => setActiveSection(null)}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-all"
-                >
-                  ✕ Clear
-                </button>
-              )}
+            {/* Floating Search Bar */}
+            <div className="relative group max-w-2xl shadow-2xl shadow-black/5 rounded-2xl">
+              <div className="absolute inset-0 bg-gradient-to-r from-accent to-purple-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-500" />
+              <div className="relative flex items-center bg-surface border-2 border-border/50 rounded-2xl px-2">
+                <Search className="w-5 h-5 text-muted ml-3" />
+                <input
+                  type="text"
+                  placeholder="Search for GitHub, Spotify, Nike, Apple..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-transparent px-4 py-4 text-foreground placeholder:text-muted/70 focus:outline-none text-base"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="p-2 mr-1 rounded-xl hover:bg-surface-alt text-muted transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Search Bar */}
-        <div className="relative max-w-xl mb-8">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
-          <input
-            type="text"
-            placeholder="Search any brand, tool, or benefit..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-border bg-surface text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/50 text-sm"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-muted hover:text-foreground"
-            >
-              Clear
-            </button>
-          )}
-        </div>
-
-        {/* Pro Tips Banner */}
-        <div className="mb-10 p-5 rounded-2xl bg-gradient-to-r from-accent/5 via-pink-500/5 to-amber-500/5 border border-accent/10">
-          <div className="flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
-            <div>
-              <h3 className="text-sm font-bold text-foreground mb-1">Pro Tip: Start with these 3 steps</h3>
-              <ol className="text-sm text-muted space-y-1 list-decimal list-inside">
-                <li>Sign up on <strong>UNiDAYS India</strong> + <strong>Student Beans India</strong> — together they unlock 95% of all student deals.</li>
-                <li>Get the <strong>GitHub Student Developer Pack</strong> — it gives Indian students free JetBrains, domains, cloud credits, and 100+ tools.</li>
-                <li>Activate <strong>Swiggy Student Rewards</strong> in your app immediately — covers 2,000+ campuses for free delivery + ₹49 meals.</li>
-              </ol>
+      <div className="container mx-auto px-4 py-12">
+        {/* Must Have Featured Bento Grid - Only show if not searching */}
+        {!searchQuery && (
+          <div className="mb-16">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <Target className="w-4 h-4 text-orange-600" />
+              </div>
+              <h2 className="text-xl font-bold font-heading text-foreground">The Absolute Essentials</h2>
             </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Bento Box 1 */}
+              <a href="https://education.github.com/pack" target="_blank" rel="noopener noreferrer" className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 to-slate-800 p-8 text-white border border-slate-700 hover:border-slate-500 transition-all hover:-translate-y-1 shadow-xl hover:shadow-2xl">
+                 <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                   <Code className="w-32 h-32" />
+                 </div>
+                 <div className="relative z-10">
+                   <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6 border border-white/20">
+                     <Monitor className="w-6 h-6 text-white" />
+                   </div>
+                   <h3 className="text-2xl font-bold mb-2">$200k+ Free Tools</h3>
+                   <p className="text-slate-300 text-sm mb-6 leading-relaxed">GitHub Student Developer Pack unlocks JetBrains, DigitalOcean, Canva Pro, domains & more instantly.</p>
+                   <div className="inline-flex items-center gap-2 text-sm font-semibold text-white/90 group-hover:text-white">
+                     Claim GitHub Pack <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                   </div>
+                 </div>
+              </a>
+
+              {/* Bento Box 2 */}
+              <a href="https://www.myunidays.com/IN/en-IN" target="_blank" rel="noopener noreferrer" className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600 to-fuchsia-600 p-8 text-white border border-violet-500 hover:border-violet-400 transition-all hover:-translate-y-1 shadow-xl hover:shadow-2xl md:col-span-2 lg:col-span-1">
+                 <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity rotate-12">
+                   <Tag className="w-32 h-32" />
+                 </div>
+                 <div className="relative z-10">
+                   <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6 border border-white/20">
+                     <Shirt className="w-6 h-6 text-white" />
+                   </div>
+                   <h3 className="text-2xl font-bold mb-2">The Verification Hubs</h3>
+                   <p className="text-violet-100 text-sm mb-6 leading-relaxed">Sign up for UNiDAYS & Student Beans. These 2 platforms act as global verification keys for 95% of brands.</p>
+                   <div className="inline-flex items-center gap-2 text-sm font-semibold text-white/90 group-hover:text-white">
+                     Join UNiDAYS <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                   </div>
+                 </div>
+              </a>
+
+              {/* Bento Box 3 */}
+              <a href="https://www.swiggy.com/" target="_blank" rel="noopener noreferrer" className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-500 to-amber-500 p-8 text-white border border-orange-400 hover:border-orange-300 transition-all hover:-translate-y-1 shadow-xl hover:shadow-2xl">
+                 <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity -rotate-12">
+                   <UtensilsCrossed className="w-32 h-32" />
+                 </div>
+                 <div className="relative z-10">
+                   <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center mb-6 border border-white/20">
+                     <Heart className="w-6 h-6 text-white" />
+                   </div>
+                   <h3 className="text-2xl font-bold mb-2">Campus Food Priority</h3>
+                   <p className="text-orange-100 text-sm mb-6 leading-relaxed">Activate Swiggy Student Rewards to instantly unlock ₹49 meals and free delivery to 2,000+ Indian campuses.</p>
+                   <div className="inline-flex items-center gap-2 text-sm font-semibold text-white/90 group-hover:text-white">
+                     Activate Swiggy <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+                   </div>
+                 </div>
+              </a>
+            </div>
+          </div>
+        )}
+
+        {/* Dynamic Category Pill Navigation */}
+        <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-xl border-b border-border py-4 mb-10 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none snap-x">
+            <button
+              onClick={() => setActiveSection("all")}
+              className={`snap-start whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-sm border ${
+                activeSection === "all" 
+                  ? "bg-foreground text-background border-foreground shadow-md"
+                  : "bg-surface border-border text-muted hover:bg-surface-alt hover:text-foreground"
+              }`}
+            >
+              All Rewards
+            </button>
+            {SECTIONS.map(s => (
+              <button
+                key={s.id}
+                onClick={() => setActiveSection(s.id)}
+                className={`flex items-center gap-2 snap-start whitespace-nowrap px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-sm border ${
+                  activeSection === s.id
+                    ? `${s.bgColor} ${s.color} ${s.borderColor} shadow-md`
+                    : "bg-surface border-border text-muted hover:bg-surface-alt hover:text-foreground"
+                }`}
+              >
+                <s.icon className={`w-4 h-4 ${activeSection === s.id ? "" : "opacity-70"}`} />
+                {s.title}
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] ml-1 ${activeSection === s.id ? "bg-white/80" : "bg-surface-alt"}`}>
+                  {s.benefits.length}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Sections */}
-        <div className="space-y-6">
+        {/* Grid Sections */}
+        <div className="space-y-16">
           {displaySections.map((section) => (
-            <div
-              key={section.id}
-              className={`rounded-2xl border ${section.borderColor} bg-surface overflow-hidden transition-all`}
-            >
-              {/* Section Header */}
-              <button
-                onClick={() => toggleSection(section.id)}
-                className={`w-full flex items-center justify-between p-5 ${section.bgColor} hover:opacity-90 transition-opacity`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl ${section.bgColor} border ${section.borderColor} flex items-center justify-center`}>
-                    <section.icon className={`w-5 h-5 ${section.color}`} />
-                  </div>
-                  <div className="text-left">
-                    <h2 className={`text-lg font-bold ${section.color}`}>{section.title}</h2>
-                    <p className="text-xs text-muted mt-0.5 hidden md:block">{section.subtitle}</p>
-                  </div>
+            <div key={section.id} className="scroll-mt-32">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className={`text-2xl font-bold font-heading mb-1 flex items-center gap-3 ${section.color}`}>
+                    <div className={`w-10 h-10 rounded-xl ${section.bgColor} flex items-center justify-center border ${section.borderColor}`}>
+                      <section.icon className="w-5 h-5" />
+                    </div>
+                    {section.title}
+                  </h2>
+                  <p className="text-muted text-sm ml-14">{section.subtitle}</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${section.bgColor} ${section.color} border ${section.borderColor}`}>
-                    {section.benefits.length} deals
-                  </span>
-                  {expandedSections.has(section.id) ? (
-                    <ChevronUp className="w-5 h-5 text-muted" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-muted" />
-                  )}
-                </div>
-              </button>
+              </div>
 
-              {/* Section Body */}
-              {expandedSections.has(section.id) && (
-                <div className="p-4 md:p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {section.benefits.map((benefit, idx) => (
-                      <div
-                        key={idx}
-                        className="group relative p-4 rounded-xl bg-background border border-border hover:border-accent/30 hover:shadow-md hover:shadow-accent/5 transition-all"
-                      >
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <h3 className="font-semibold text-sm text-foreground leading-tight group-hover:text-accent transition-colors">
-                            {benefit.brand}
-                          </h3>
-                          <a
-                            href={benefit.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex-shrink-0 w-8 h-8 rounded-lg bg-surface-alt border border-border flex items-center justify-center text-muted hover:text-accent hover:border-accent/30 transition-all"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
+              {/* Premium Masonry Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 ml-0 lg:ml-14">
+                {section.benefits.map((benefit, idx) => (
+                  <a
+                    key={idx}
+                    href={benefit.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative flex flex-col p-6 rounded-3xl bg-surface border border-border hover:border-accent/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-accent/5 overflow-hidden"
+                  >
+                    {/* Glowing background gradient on hover */}
+                    <div className={`absolute -inset-2 opacity-0 group-hover:opacity-10 transition-opacity blur-xl ${section.bgColor}`} />
+                    
+                    <div className="relative z-10 flex-1">
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="font-bold text-lg text-foreground group-hover:text-accent transition-colors leading-tight">
+                          {benefit.brand}
+                        </h3>
+                        <div className="w-8 h-8 rounded-full bg-surface-alt flex items-center justify-center flex-shrink-0 group-hover:bg-accent group-hover:text-white transition-colors">
+                          <ExternalLink className="w-3.5 h-3.5" />
                         </div>
-
-                        <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold ${section.bgColor} ${section.color} mb-2`}>
-                          <Star className="w-3 h-3" />
-                          {benefit.discount}
-                        </div>
-
-                        <p className="text-xs text-muted leading-relaxed">
-                          {benefit.howToAccess}
-                        </p>
-
-                        <a
-                          href={benefit.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`mt-3 inline-flex items-center gap-1 text-xs font-semibold ${section.color} hover:underline`}
-                        >
-                          Claim Deal →
-                        </a>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+
+                      <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm mb-5 ${section.bgColor} ${section.color} border ${section.borderColor}`}>
+                        <Star className="w-3.5 h-3.5 fill-current" />
+                        {benefit.discount}
+                      </div>
+
+                      <p className="text-sm text-muted leading-relaxed font-medium">
+                        {benefit.howToAccess}
+                      </p>
+                    </div>
+
+                    <div className="relative z-10 mt-6 pt-4 border-t border-border flex items-center gap-2 text-sm font-bold text-accent opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all">
+                      Access Deal <ArrowUpRight className="w-4 h-4" />
+                    </div>
+                  </a>
+                ))}
+              </div>
             </div>
           ))}
         </div>
 
         {/* Empty State */}
         {displaySections.length === 0 && (
-          <div className="py-20 text-center">
-            <Filter className="w-12 h-12 text-muted mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-foreground mb-2">No benefits found</h3>
-            <p className="text-muted text-sm mb-4">No results match &quot;{searchQuery}&quot;</p>
+          <div className="py-32 text-center rounded-3xl bg-surface border border-border border-dashed mt-8">
+            <Filter className="w-16 h-16 text-muted/50 mx-auto mb-6" />
+            <h3 className="text-2xl font-bold font-heading text-foreground mb-3">No deals found</h3>
+            <p className="text-muted text-base mb-8 max-w-md mx-auto">We searched through 70+ benefits but couldn't find a match for "{searchQuery}".</p>
             <button
-              onClick={() => { setSearchQuery(""); setActiveSection(null) }}
-              className="px-4 py-2 rounded-xl bg-accent text-white text-sm font-medium hover:bg-accent-hover transition"
+              onClick={() => { setSearchQuery(""); setActiveSection("all") }}
+              className="px-6 py-3 rounded-xl bg-foreground text-background font-bold hover:-translate-y-0.5 transition-transform shadow-lg shadow-black/10"
             >
-              Clear Filters
+              Clear all filters
             </button>
           </div>
         )}

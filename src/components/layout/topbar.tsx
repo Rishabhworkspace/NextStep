@@ -57,16 +57,7 @@ export function Topbar() {
           <span className="font-heading font-extrabold text-lg tracking-tight text-slate-800">NextStep</span>
         </Link>
 
-        {/* Command Palette Trigger */}
-        <button className="hidden md:flex items-center text-sm text-text-muted bg-surface-alt border border-border px-3 py-1.5 rounded-lg w-64 justify-between hover:border-accent/50 transition-colors">
-          <span className="flex items-center gap-2">
-            <Search className="w-4 h-4 text-text-subtle" />
-            Search...
-          </span>
-          <kbd className="hidden sm:inline-block rounded border border-border bg-surface px-1.5 font-mono text-[10px] font-medium text-text-subtle">
-            <span className="text-xs">⌘</span>K
-          </kbd>
-        </button>
+
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
