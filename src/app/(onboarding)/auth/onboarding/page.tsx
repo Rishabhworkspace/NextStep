@@ -24,19 +24,38 @@ const CAREER_CARDS = [
   { icon: Palette, label: "Product Designer", value: "design" },
   { icon: LineChart, label: "Product Manager", value: "pm" },
   { icon: Shield, label: "Security Analyst", value: "security" },
-  { icon: Rocket, label: "Startup Founder", value: "founder" },
-  { icon: Briefcase, label: "Consultant", value: "consultant" },
+  { icon: Rocket, label: "Full Stack Developer", value: "fullstack" },
+  { icon: Briefcase, label: "DevOps Engineer", value: "devops" },
+  { icon: Code, label: "Mobile App Developer", value: "mobile" },
+  { icon: Database, label: "Cloud Architect", value: "cloud" },
+  { icon: Shield, label: "Blockchain Developer", value: "blockchain" },
+  { icon: Brain, label: "Game Developer", value: "gamedev" },
+  { icon: LineChart, label: "Business Analyst", value: "ba" },
+  { icon: Rocket, label: "Digital Marketer", value: "marketing" },
 ]
 
 const COMPANY_TYPES = ["FAANG / Big Tech", "Startup", "MNC", "Government", "Freelancing"]
 
 const TIMELINES = ["6 months", "1 year", "2 years", "3+ years"]
 
-const SKILL_TAGS = [
-  "Python", "JavaScript", "TypeScript", "Java", "C++", "React", "Node.js",
-  "SQL", "MongoDB", "Docker", "Git", "AWS", "TensorFlow", "Figma",
-  "Excel", "Communication", "Problem Solving", "DSA"
-]
+const PATH_SKILL_TAGS: Record<string, string[]> = {
+  swe: ["C++", "Java", "Python", "Data Structures", "Algorithms", "OOP", "System Design", "Operating Systems", "DBMS", "Git", "Testing"],
+  ds: ["Python", "R", "SQL", "Pandas", "NumPy", "Statistics", "Probability", "Machine Learning", "Data Visualization", "Excel", "Feature Engineering"],
+  ml: ["Python", "Linear Algebra", "Calculus", "TensorFlow", "PyTorch", "Deep Learning", "NLP", "Computer Vision", "Model Evaluation", "Scikit-learn", "MLOps"],
+  design: ["Figma", "Adobe XD", "Sketch", "UI Design", "UX Research", "Wireframing", "Prototyping", "Typography", "Color Theory", "Accessibility", "Design Systems"],
+  pm: ["Product Strategy", "Agile/Scrum", "User Research", "SQL", "Analytics", "A/B Testing", "Roadmapping", "Prioritization", "Wireframing", "Communication", "Jira"],
+  security: ["Networking", "Linux", "Cryptography", "OWASP", "Ethical Hacking", "Firewalls", "Incident Response", "Wireshark", "Nmap", "Python", "Authentication"],
+  fullstack: ["HTML/CSS", "JavaScript", "TypeScript", "React", "Next.js", "Node.js", "Express", "MongoDB", "SQL", "REST APIs", "Git", "Docker", "Tailwind CSS"],
+  devops: ["Linux", "Docker", "Kubernetes", "CI/CD", "AWS", "Terraform", "Jenkins", "Ansible", "Git", "Monitoring", "Bash", "Networking"],
+  mobile: ["React Native", "Flutter", "Dart", "Swift", "Kotlin", "JavaScript", "TypeScript", "Mobile UI", "REST APIs", "Firebase", "Git"],
+  cloud: ["AWS", "GCP", "Azure", "Docker", "Kubernetes", "Terraform", "Serverless", "Networking", "IAM", "Linux", "CI/CD", "Monitoring"],
+  blockchain: ["Solidity", "JavaScript", "Web3.js", "Ethers.js", "Smart Contracts", "Cryptography", "DeFi", "NFTs", "Hardhat", "Git", "React"],
+  gamedev: ["Unity", "C#", "Unreal Engine", "C++", "Game Design", "Physics", "3D Modeling", "Shaders", "AI/Pathfinding", "Git", "Multiplayer"],
+  ba: ["SQL", "Excel", "Tableau", "Power BI", "Requirements Analysis", "BPMN", "Jira", "Communication", "Process Modeling", "Stakeholder Mgmt", "Data Analysis"],
+  marketing: ["SEO", "Google Ads", "Google Analytics", "Social Media", "Content Writing", "Email Marketing", "Canva", "CRM", "A/B Testing", "Copywriting", "WordPress"],
+}
+
+const FALLBACK_SKILLS = ["Python", "JavaScript", "SQL", "Git", "Communication", "Problem Solving", "Excel", "DSA"]
 
 const INCOME_BRACKETS = ["Below ₹2L/yr", "₹2L – ₹5L/yr", "₹5L – ₹10L/yr", "₹10L+/yr"]
 
@@ -49,6 +68,7 @@ export default function OnboardingWizard() {
   const [step, setStep] = useState(1)
   const [saving, setSaving] = useState(false)
   const [showCompletion, setShowCompletion] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const totalSteps = 5
   const progress = (step / totalSteps) * 100
 
@@ -132,7 +152,38 @@ export default function OnboardingWizard() {
     }
   }
 
+  // ─── Validation ─────────────────────────────────────────
+  const getStepErrors = (): Record<string, string> => {
+    const errors: Record<string, string> = {}
+    switch (step) {
+      case 1:
+        if (!formData.fullName.trim()) errors.fullName = "Full name is required"
+        if (!formData.college.trim()) errors.college = "College is required"
+        if (!formData.degree.trim()) errors.degree = "Degree is required"
+        break
+      case 2:
+        if (!formData.cgpa.trim()) errors.cgpa = "CGPA is required"
+        if (formData.confidentSubjects.length === 0) errors.confidentSubjects = "Select at least one subject"
+        break
+      case 3:
+        if (!formData.targetRole) errors.targetRole = "Please select a career path"
+        if (!formData.companyType) errors.companyType = "Please select company type"
+        if (!formData.timeline) errors.timeline = "Please select a timeline"
+        break
+      case 4:
+        if (formData.currentSkills.length === 0) errors.currentSkills = "Select at least one skill"
+        break
+    }
+    return errors
+  }
+
   const handleNext = () => {
+    const errors = getStepErrors()
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      return
+    }
+    setFieldErrors({})
     if (step < totalSteps) {
       setStep(step + 1)
     } else {
@@ -209,17 +260,20 @@ export default function OnboardingWizard() {
               </div>
               <div className="space-y-5">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700">Full Name</label>
-                  <Input placeholder="e.g. Arjun Sharma" className="h-12 bg-gray-50 border-gray-200" value={formData.fullName} onChange={e => updateField("fullName", e.target.value)} />
+                  <label className="text-sm font-medium text-gray-700">Full Name <span className="text-red-400">*</span></label>
+                  <Input placeholder="e.g. Arjun Sharma" className={`h-12 bg-gray-50 ${fieldErrors.fullName ? 'border-red-400' : 'border-gray-200'}`} value={formData.fullName} onChange={e => { updateField("fullName", e.target.value); setFieldErrors(prev => { const n = {...prev}; delete n.fullName; return n }) }} />
+                  {fieldErrors.fullName && <p className="text-xs text-red-500 font-medium">{fieldErrors.fullName}</p>}
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700">College or University</label>
-                  <Input placeholder="e.g. IIT Madras" className="h-12 bg-gray-50 border-gray-200" value={formData.college} onChange={e => updateField("college", e.target.value)} />
+                  <label className="text-sm font-medium text-gray-700">College or University <span className="text-red-400">*</span></label>
+                  <Input placeholder="e.g. IIT Madras" className={`h-12 bg-gray-50 ${fieldErrors.college ? 'border-red-400' : 'border-gray-200'}`} value={formData.college} onChange={e => { updateField("college", e.target.value); setFieldErrors(prev => { const n = {...prev}; delete n.college; return n }) }} />
+                  {fieldErrors.college && <p className="text-xs text-red-500 font-medium">{fieldErrors.college}</p>}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-gray-700">Degree</label>
-                    <Input placeholder="e.g. B.Tech CSE" className="h-12 bg-gray-50 border-gray-200" value={formData.degree} onChange={e => updateField("degree", e.target.value)} />
+                    <label className="text-sm font-medium text-gray-700">Degree <span className="text-red-400">*</span></label>
+                    <Input placeholder="e.g. B.Tech CSE" className={`h-12 bg-gray-50 ${fieldErrors.degree ? 'border-red-400' : 'border-gray-200'}`} value={formData.degree} onChange={e => { updateField("degree", e.target.value); setFieldErrors(prev => { const n = {...prev}; delete n.degree; return n }) }} />
+                    {fieldErrors.degree && <p className="text-xs text-red-500 font-medium">{fieldErrors.degree}</p>}
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-gray-700">Year of Study</label>
@@ -270,11 +324,12 @@ export default function OnboardingWizard() {
               <div className="space-y-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-gray-700">Current CGPA</label>
+                    <label className="text-sm font-medium text-gray-700">Current CGPA <span className="text-red-400">*</span></label>
                     <div className="relative">
-                      <Input type="number" step="0.1" min="0" max="10" placeholder="8.5" className="h-12 pr-14 bg-gray-50 border-gray-200" value={formData.cgpa} onChange={e => updateField("cgpa", e.target.value)} />
+                      <Input type="number" step="0.1" min="0" max="10" placeholder="8.5" className={`h-12 pr-14 bg-gray-50 ${fieldErrors.cgpa ? 'border-red-400' : 'border-gray-200'}`} value={formData.cgpa} onChange={e => { updateField("cgpa", e.target.value); setFieldErrors(prev => { const n = {...prev}; delete n.cgpa; return n }) }} />
                       <span className="absolute right-4 top-3.5 text-gray-400 text-sm border-l border-gray-200 pl-3">/ 10</span>
                     </div>
+                    {fieldErrors.cgpa && <p className="text-xs text-red-500 font-medium">{fieldErrors.cgpa}</p>}
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-medium text-gray-700">Specialization</label>
@@ -289,7 +344,8 @@ export default function OnboardingWizard() {
                 </div>
 
                 <div className="space-y-3 pt-2">
-                  <label className="text-sm font-medium text-gray-700">Subjects you feel <span className="text-emerald-600">confident</span> in:</label>
+                  <label className="text-sm font-medium text-gray-700">Subjects you feel <span className="text-emerald-600">confident</span> in: <span className="text-red-400">*</span></label>
+                  {fieldErrors.confidentSubjects && <p className="text-xs text-red-500 font-medium -mt-1">{fieldErrors.confidentSubjects}</p>}
                   <div className="flex flex-wrap gap-2">
                     {SUBJECT_TAGS.map(tag => (
                       <button
@@ -341,12 +397,16 @@ export default function OnboardingWizard() {
                 <p className="text-gray-500">Pick a career that excites you. You can change this later.</p>
               </div>
               <div className="space-y-6">
+                {fieldErrors.targetRole && <p className="text-xs text-red-500 font-medium">{fieldErrors.targetRole}</p>}
                 <div className="grid grid-cols-2 gap-3">
                   {CAREER_CARDS.map(({ icon: Icon, label, value }) => (
                     <button
                       key={value}
                       type="button"
-                      onClick={() => updateField("targetRole", value)}
+                      onClick={() => {
+                        updateField("targetRole", value)
+                        if (formData.targetRole !== value) updateField("currentSkills", [])
+                      }}
                       className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${
                         formData.targetRole === value
                           ? "border-orange-400 bg-orange-50 shadow-sm shadow-orange-100"
@@ -364,7 +424,8 @@ export default function OnboardingWizard() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-sm font-medium text-gray-700">Preferred company type</label>
+                  <label className="text-sm font-medium text-gray-700">Preferred company type <span className="text-red-400">*</span></label>
+                  {fieldErrors.companyType && <p className="text-xs text-red-500 font-medium">{fieldErrors.companyType}</p>}
                   <div className="flex flex-wrap gap-2">
                     {COMPANY_TYPES.map(type => (
                       <button
@@ -384,7 +445,8 @@ export default function OnboardingWizard() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-sm font-medium text-gray-700">How soon do you want to achieve this?</label>
+                  <label className="text-sm font-medium text-gray-700">How soon do you want to achieve this? <span className="text-red-400">*</span></label>
+                  {fieldErrors.timeline && <p className="text-xs text-red-500 font-medium">{fieldErrors.timeline}</p>}
                   <div className="flex flex-wrap gap-2">
                     {TIMELINES.map(t => (
                       <button
@@ -416,8 +478,9 @@ export default function OnboardingWizard() {
                 <p className="text-gray-500">Tap skills you have, then rate your proficiency.</p>
               </div>
               <div className="space-y-6">
+                {fieldErrors.currentSkills && <p className="text-xs text-red-500 font-medium">{fieldErrors.currentSkills}</p>}
                 <div className="flex flex-wrap gap-2">
-                  {SKILL_TAGS.map(skill => {
+                  {(PATH_SKILL_TAGS[formData.targetRole] || FALLBACK_SKILLS).map(skill => {
                     const selected = formData.currentSkills.some(s => s.name === skill)
                     return (
                       <button
@@ -551,24 +614,26 @@ export default function OnboardingWizard() {
               Back
             </Button>
 
-            <Button
-              onClick={handleNext}
-              disabled={saving}
-              className="px-8 text-white shadow-lg shadow-orange-500/20"
-              size="lg"
-              style={{ background: "linear-gradient(90deg, #F97316, #EC4899)" }}
-            >
-              {saving ? (
-                <span className="flex items-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Saving…
-                </span>
-              ) : step === totalSteps ? (
-                "Complete Profile"
-              ) : (
-                <>Continue <ArrowRight className="w-4 h-4 ml-2" /></>
-              )}
-            </Button>
+            <div className="flex flex-col items-end gap-1.5">
+              <Button
+                onClick={handleNext}
+                disabled={saving}
+                className="px-8 text-white shadow-lg shadow-orange-500/20"
+                size="lg"
+                style={{ background: "linear-gradient(90deg, #F97316, #EC4899)" }}
+              >
+                {saving ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving…
+                  </span>
+                ) : step === totalSteps ? (
+                  "Complete Profile"
+                ) : (
+                  <>Continue <ArrowRight className="w-4 h-4 ml-2" /></>
+                )}
+              </Button>
+            </div>
           </div>
 
         </div>
