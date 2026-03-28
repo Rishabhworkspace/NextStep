@@ -7,6 +7,7 @@ import {
   LayoutDashboard, 
   Map, 
   Target, 
+  Zap,
   CalendarDays, 
   Briefcase, 
   Award,
@@ -16,6 +17,7 @@ import {
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Skill Gap", href: "/skill-gap/overview", icon: Target },
+  { name: "Skill Boost", href: "/skill-gap/boost", icon: Zap },
   { name: "Career Roadmap", href: "/career/explore", icon: Map },
   { name: "Weekly Planner", href: "/planner/weekly", icon: CalendarDays },
   { name: "Opportunities", href: "/opportunities/internships", icon: Briefcase },
