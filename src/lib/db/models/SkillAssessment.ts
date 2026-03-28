@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from "mongoose"
 
 export interface ISkillAssessment extends Document {
   userId: string
+  careerPath: string
   quizDate: Date
   totalScore: number
   totalQuestions: number
@@ -26,6 +27,7 @@ export interface ISkillAssessment extends Document {
 const SkillAssessmentSchema = new Schema<ISkillAssessment>(
   {
     userId: { type: String, required: true, index: true },
+    careerPath: { type: String, required: true, default: "swe" },
     quizDate: { type: Date, default: Date.now },
     totalScore: { type: Number, required: true },
     totalQuestions: { type: Number, required: true },

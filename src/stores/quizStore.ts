@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import type { Question } from "@/constants/questionBank"
+import type { Question, CareerPath } from "@/constants/questionBank"
 
 export interface QuizAnswer {
   questionId: string
@@ -10,12 +10,14 @@ export interface QuizAnswer {
 }
 
 interface QuizState {
+  careerPath: CareerPath | null
   questions: Question[]
   currentIndex: number
   answers: QuizAnswer[]
   timeLeft: number
   isFinished: boolean
 
+  setCareerPath: (p: CareerPath) => void
   setQuestions: (q: Question[]) => void
   submitAnswer: (selectedIndex: number) => void
   nextQuestion: () => void
@@ -25,11 +27,14 @@ interface QuizState {
 }
 
 export const useQuizStore = create<QuizState>((set, get) => ({
+  careerPath: null,
   questions: [],
   currentIndex: 0,
   answers: [],
   timeLeft: 30,
   isFinished: false,
+
+  setCareerPath: (careerPath) => set({ careerPath }),
 
   setQuestions: (questions) => set({ questions, currentIndex: 0, answers: [], isFinished: false, timeLeft: 30 }),
 
@@ -61,5 +66,12 @@ export const useQuizStore = create<QuizState>((set, get) => ({
 
   finishQuiz: () => set({ isFinished: true }),
 
-  reset: () => set({ questions: [], currentIndex: 0, answers: [], timeLeft: 30, isFinished: false }),
+  reset: () => set({
+    careerPath: null,
+    questions: [],
+    currentIndex: 0,
+    answers: [],
+    timeLeft: 30,
+    isFinished: false,
+  }),
 }))
