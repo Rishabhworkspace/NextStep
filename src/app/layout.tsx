@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -18,8 +19,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NextStep - Student Success Platform",
-  description: "Navigate your career path with AI-driven actionable steps and resources.",
+  title: "NextStep | Your AI Student Success Platform",
+  description: "Skill gap analysis, AI roadmaps, planner, and verified opportunities for first-generation students.",
 };
 
 export default function RootLayout({
@@ -32,7 +33,10 @@ export default function RootLayout({
       lang="en"
       className={`${outfit.variable} ${jakarta.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col font-sans text-foreground bg-background selection:bg-primary/30">
+        {children}
+        <Toaster theme="system" position="top-right" richColors />
+      </body>
     </html>
   );
 }
