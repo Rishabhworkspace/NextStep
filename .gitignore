@@ -47,3 +47,7 @@ agent/
 agents/
 design-system/
 required/
+
+# Data Seed Folders
+/Internships/
+/questions/
