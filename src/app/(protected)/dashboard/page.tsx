@@ -136,7 +136,7 @@ export default function DashboardPage() {
             <div className="h-2 bg-slate-100 rounded-full overflow-hidden shadow-inner">
               <div 
                 className="h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(249,115,22,0.5)]" 
-                style={{ width: \`\${stats.successScore || 0}%\`, background: "linear-gradient(90deg, #F97316, #EC4899)" }} 
+                style={{ width: `${stats.successScore || 0}%`, background: "linear-gradient(90deg, #F97316, #EC4899)" }} 
               />
             </div>
           </div>
@@ -183,7 +183,7 @@ export default function DashboardPage() {
             <div className="h-2 bg-slate-100 rounded-full overflow-hidden shadow-inner">
               <div 
                 className="h-full bg-blue-500 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(59,130,246,0.5)]" 
-                style={{ width: \`\${taskCompletionPct}%\` }} 
+                style={{ width: `${taskCompletionPct}%` }} 
               />
             </div>
           </div>
@@ -237,17 +237,17 @@ export default function DashboardPage() {
                   const isLatest = i === quizHistory.length - 1
                   return (
                     <div key={i} className="flex-1 flex flex-col justify-end items-center gap-2 group/bar h-full max-w-[48px]">
-                      <span className={\`text-[11px] font-black opacity-0 group-hover/bar:opacity-100 transition-all duration-300 translate-y-2 group-hover/bar:translate-y-0 \${q.score >= 70 ? 'text-emerald-600' : q.score >= 40 ? 'text-amber-600' : 'text-red-500'}\`}>
+                      <span className={`text-[11px] font-black opacity-0 group-hover/bar:opacity-100 transition-all duration-300 translate-y-2 group-hover/bar:translate-y-0 ${q.score >= 70 ? 'text-emerald-600' : q.score >= 40 ? 'text-amber-600' : 'text-red-500'}`}>
                         {q.score}%
                       </span>
                       <div
-                        className={\`w-full rounded-t-xl transition-all duration-500 cursor-pointer group-hover/bar:brightness-110 \${
+                        className={`w-full rounded-t-xl transition-all duration-500 cursor-pointer group-hover/bar:brightness-110 ${
                           isLatest
                             ? "shadow-[0_0_20px_rgba(249,115,22,0.4)]"
                             : "hover:shadow-[0_0_15px_rgba(0,0,0,0.1)]"
-                        }\`}
+                        }`}
                         style={{
-                          height: \`\${barH}%\`,
+                          height: `${barH}%`,
                           background: isLatest
                             ? "linear-gradient(180deg, #F97316, #EC4899)"
                             : q.score >= 70
@@ -290,10 +290,10 @@ export default function DashboardPage() {
                     <div key={i} className="group/item">
                       <div className="flex justify-between text-sm mb-1.5 list-none">
                         <span className="font-bold text-slate-700 truncate pr-2 group-hover/item:text-amber-600 transition-colors">{c.concept}</span>
-                        <span className={\`font-black text-xs \${c.percentage < 30 ? 'text-red-500' : 'text-amber-500'}\`}>{c.correct}/{c.total}</span>
+                        <span className={`font-black text-xs ${c.percentage < 30 ? 'text-red-500' : 'text-amber-500'}`}>{c.correct}/{c.total}</span>
                       </div>
                       <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                        <div className={\`h-full rounded-full transition-all duration-700 \${c.percentage < 30 ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'}\`} style={{ width: \`\${c.percentage}%\` }} />
+                        <div className={`h-full rounded-full transition-all duration-700 ${c.percentage < 30 ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]'}`} style={{ width: `${c.percentage}%` }} />
                       </div>
                     </div>
                   ))}
@@ -324,7 +324,7 @@ export default function DashboardPage() {
                         <span className="font-black text-xs text-emerald-600 drop-shadow-sm">{c.percentage}%</span>
                       </div>
                       <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                        <div className="h-full bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)] transition-all duration-700" style={{ width: \`\${c.percentage}%\` }} />
+                        <div className="h-full bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)] transition-all duration-700" style={{ width: `${c.percentage}%` }} />
                       </div>
                     </div>
                   ))}
@@ -375,7 +375,7 @@ export default function DashboardPage() {
                       <div
                         className="h-full rounded-full transition-all duration-700 shadow-sm"
                         style={{
-                          width: \`\${s.proficiency}%\`,
+                          width: `${s.proficiency}%`,
                           background: s.proficiency >= 70 ? "linear-gradient(90deg, #34D399, #10B981)" : s.proficiency >= 40 ? "linear-gradient(90deg, #FBBF24, #F59E0B)" : "linear-gradient(90deg, #F87171, #EF4444)"
                         }}
                       />
@@ -456,6 +456,67 @@ export default function DashboardPage() {
             )}
           </div>
 
+          {/* Career Roadmaps */}
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-sm shadow-slate-200/50 p-6 md:p-7">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-[11px] font-black tracking-widest text-slate-400 uppercase">Career Roadmaps</h3>
+              <Link href="/career/explore" className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100 transition-colors">
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            {recentRoadmaps.length === 0 ? (
+              <div className="text-center py-6 rounded-2xl bg-slate-50 border border-dashed border-slate-200">
+                <Map className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-xs font-bold text-slate-400">No roadmaps generated</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentRoadmaps.map((r: any, idx: number) => (
+                  <Link key={idx} href={`/career/roadmap`} className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50 hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${idx === 0 ? 'bg-[#090F1A] shadow-[0_0_10px_rgba(0,0,0,0.2)]' : 'bg-gradient-to-br from-indigo-50 to-blue-50 border border-blue-100'}`}>
+                      <BookOpen className={`w-4 h-4 ${idx === 0 ? 'text-white' : 'text-blue-600'}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">{r.title}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{new Date(r.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Recent Quizzes */}
+          {recentQuizzes.length > 0 && (
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-sm shadow-slate-200/50 p-6 md:p-7">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-[11px] font-black tracking-widest text-slate-400 uppercase">Recent Quizzes</h3>
+                <Link href="/skill-gap/overview" className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors">
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+              <div className="space-y-3">
+                {recentQuizzes.map((q: any, i: number) => (
+                  <Link key={i} href={`/skill-gap/report/${q.id}`} className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50 hover:shadow-md hover:-translate-y-0.5 transition-all group">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 border ${
+                      q.score >= 70 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                      q.score >= 40 ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                      'bg-red-50 text-red-600 border-red-100'
+                    }`}>
+                      {q.score}%
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-slate-900 capitalize truncate group-hover:text-emerald-600 transition-colors">{ROLE_LABELS[q.careerPath] || q.careerPath}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">{q.level} · {q.totalScore}/{q.totalQuestions}</p>
+                    </div>
+                    <TrendingUp className="w-4 h-4 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-0.5 transition-all" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Module Usage */}
           <div className="bg-white rounded-3xl border border-slate-100 shadow-sm shadow-slate-200/50 p-6 md:p-7">
             <h3 className="text-[11px] font-black tracking-widest text-slate-400 uppercase mb-5">Module Engagement</h3>
@@ -478,7 +539,7 @@ export default function DashboardPage() {
                          <span className="text-[10px] font-black text-slate-900">{m.val}</span>
                       </div>
                       <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                        <div className={\`h-full rounded-full transition-all duration-1000 bg-gradient-to-r \${m.gradient} \${m.glow}\`} style={{ width: \`\${Math.max(4, (m.val / max) * 100)}%\` }} />
+                        <div className={`h-full rounded-full transition-all duration-1000 bg-gradient-to-r ${m.gradient} ${m.glow}`} style={{ width: `${Math.max(4, (m.val / max) * 100)}%` }} />
                       </div>
                     </div>
                   </div>

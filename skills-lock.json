@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "presentation-creator": {
+      "source": "getsentry/skills",
+      "sourceType": "github",
+      "computedHash": "7f54f6df4ea817dcb98c951f7a943f987266080e95824d9858139612b55e62f3"
+    },
+    "recipe-create-presentation": {
+      "source": "googleworkspace/cli",
+      "sourceType": "github",
+      "computedHash": "7142df5d6834a8ff05d4e4792851d4e1b48b325bc9d9ec540a43806873c85b83"
+    }
+  }
+}
