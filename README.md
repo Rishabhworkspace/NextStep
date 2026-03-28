@@ -31,12 +31,12 @@
 
 | Feature | Description |
 | :--- | :--- |
-| **Adaptive Skill Assessment** | Topic-based quizzes meticulously designed for 14 unique career domains (SWE, Fullstack, DS, etc.). Precisely identifies strong and weak concepts. |
+| **Adaptive Skill Assessment** | Topic-based quizzes meticulously designed for unique career domains. Precisely identifies strong and weak concepts. |
 | **Generative AI Roadmaps** | Translates assessment results into high-fidelity, node-by-node learning pathways tailored to fill exact knowledge gaps. |
-| **Automated Weekly Planners** | Eradicates "planning paralysis." Intelligent agents automatically break down large 6-month roadmap nodes into perfectly timed weekly to-do lists. |
-| **Opportunity Matcher** | A recommendation engine connecting students with verified internships and active scholarships based on their profile metrics and location. |
+| **Automated Weekly Planners** | Eradicates "planning paralysis." Intelligent agents automatically break down large roadmap nodes into perfectly timed weekly to-do lists. |
 | **Internship Authenticity Checker** | A hybrid machine-learning tool that protects students from job scams by detecting fraudulent red flags and verifying business legitimacy in real time. |
-| **Data-Rich Dashboard** | A highly polished, real-time command center compiling an aggregate Success Score, skill proficiency radar charts, graphical sparklines, and active session streaks. |
+| **Student Benefits Portal** | A premium, interactive directory containing 125+ globally verified student discounts, free developer pack software, and premium campus deals. |
+| **Data-Rich Dashboard** | A polished, real-time command center compiling an aggregate Success Score, skill proficiency radar charts, and active session streaks. |
 
 <div align="center">
   <img src="public/images/hero-final.png" alt="NextStep Dashboard Preview" width="800" style="border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />
@@ -51,7 +51,7 @@
 NextStep relies heavily on an interconnected intelligence architecture:
 - **Google Gemini 2.5 Flash:** Acts as the primary generative orchestrator. It builds dynamic roadmaps, schedules weekly planners, and provides deep contextual analysis.
 - **Hugging Face (`AventIQ-AI/BERT-Spam-Job-Posting-Detection-Model`):** Provides specialized, dedicated fraud detection via binary classification inference to power the Authenticity Checker.
-- **Firecrawl API:** Powers high-fidelity web scraping for the opportunity matcher, instantly turning job URLs into structured markdown data.
+- **Firecrawl API / Jina Reader:** Powers high-fidelity web scraping for the Authenticity Checker, instantly turning raw job URLs into structured markdown data for the Spam Detection analysis pipeline.
 
 ---
 
