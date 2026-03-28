@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
-  Trophy, Target, BookOpen, RefreshCw, CalendarPlus, Sparkles, ChevronRight
+  Trophy, Target, BookOpen, RefreshCw, CalendarPlus, Sparkles, ChevronRight, Zap, Loader2
 } from "lucide-react"
 
 interface ConceptScore {
@@ -183,6 +183,9 @@ export default function QuizReportPage() {
         </div>
       </div>
 
+      {/* Skill Boost Engine CTA */}
+      <SkillBoostCTA assessmentId={assessment._id} conceptScores={assessment.conceptScores} />
+
       {/* CTA Buttons */}
       <div className="flex gap-3">
         <Button
@@ -200,6 +203,114 @@ export default function QuizReportPage() {
           View Overview <ChevronRight className="w-4 h-4 ml-1" />
         </Button>
       </div>
+    </div>
+  )
+}
+
+// ─── Inline Skill Boost CTA Component ────────────────────────────────────────
+
+function SkillBoostCTA({ assessmentId, conceptScores }: {
+  assessmentId: string
+  conceptScores: ConceptScore[]
+}) {
+  const router = useRouter()
+  const [generating, setGenerating] = useState(false)
+  const [existingPlanId, setExistingPlanId] = useState<string | null>(null)
+  const [checkingPlan, setCheckingPlan] = useState(true)
+
+  const weakConcepts = conceptScores.filter(c => c.percentage < 50)
+
+  useEffect(() => {
+    async function check() {
+      try {
+        const res = await fetch(`/api/skill-boost?assessmentId=${assessmentId}`)
+        if (res.ok) {
+          const data = await res.json()
+          if (data.plan?._id) setExistingPlanId(data.plan._id)
+        }
+      } catch {}
+      setCheckingPlan(false)
+    }
+    check()
+  }, [assessmentId])
+
+  if (weakConcepts.length === 0) return null
+
+  const handleGenerate = async () => {
+    setGenerating(true)
+    try {
+      const res = await fetch("/api/skill-boost", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assessmentId }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        router.push(`/skill-gap/boost/${data.plan._id}`)
+      } else {
+        const err = await res.json()
+        alert(err.error || "Failed to generate plan")
+        setGenerating(false)
+      }
+    } catch (error) {
+      console.error("Boost plan generation failed:", error)
+      setGenerating(false)
+    }
+  }
+
+  return (
+    <div className="bg-gradient-to-r from-orange-50 to-pink-50 border border-orange-200/60 rounded-2xl p-6 space-y-4">
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-500 rounded-lg flex items-center justify-center">
+          <Zap className="w-4 h-4 text-white" />
+        </div>
+        <h3 className="font-bold text-gray-900" style={{ fontFamily: "var(--font-outfit)" }}>Skill Boost Engine</h3>
+      </div>
+      <p className="text-sm text-gray-600">
+        We found <span className="font-bold text-orange-600">{weakConcepts.length} concept{weakConcepts.length !== 1 ? 's' : ''}</span> below 50%. Generate a personalized recovery plan with AI-curated steps and real learning resources.
+      </p>
+
+      {/* Weak concepts list */}
+      <div className="space-y-2">
+        {weakConcepts.map(c => (
+          <div key={c.concept} className="flex items-center justify-between p-2.5 bg-white/60 rounded-lg border border-orange-100">
+            <div className="flex items-center gap-2">
+              <span>{c.percentage < 30 ? '🔴' : '⚠️'}</span>
+              <span className="text-sm font-medium text-gray-800">{c.concept}</span>
+            </div>
+            <span className="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full">
+              {c.percentage}%
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {checkingPlan ? (
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <Loader2 className="w-4 h-4 animate-spin" /> Checking for existing plan...
+        </div>
+      ) : existingPlanId ? (
+        <button
+          onClick={() => router.push(`/skill-gap/boost/${existingPlanId}`)}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-white font-medium text-sm shadow-lg shadow-orange-500/20"
+          style={{ background: "linear-gradient(90deg, #F97316, #EC4899)" }}
+        >
+          View My Boost Plan <ChevronRight className="w-4 h-4" />
+        </button>
+      ) : (
+        <button
+          onClick={handleGenerate}
+          disabled={generating}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-white font-medium text-sm shadow-lg shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ background: "linear-gradient(90deg, #F97316, #EC4899)" }}
+        >
+          {generating ? (
+            <><Loader2 className="w-4 h-4 animate-spin" /> Generating Boost Plan...</>
+          ) : (
+            <><Sparkles className="w-4 h-4" /> Generate My Boost Plan</>
+          )}
+        </button>
+      )}
     </div>
   )
 }
