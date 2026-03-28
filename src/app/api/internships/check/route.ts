@@ -38,6 +38,35 @@ export async function POST(req: Request) {
       if (textToAnalyze.length < 50) throw new Error("Could not extract enough readable content from this URL.")
     }
 
+    // Call Hugging Face BERT model
+    let hfVerdict = "Analyze the text based strictly on your own logic without any external baseline.";
+    try {
+      if (process.env.HF_TOKEN) {
+        const hfRes = await fetch("https://api-inference.huggingface.co/models/AventIQ-AI/BERT-Spam-Job-Posting-Detection-Model", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${process.env.HF_TOKEN}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ inputs: textToAnalyze.substring(0, 1000) })
+        });
+        
+        if (hfRes.ok) {
+          const result = await hfRes.json();
+          if (Array.isArray(result) && result.length > 0) {
+            let sortedScores = Array.isArray(result[0]) ? result[0] : result;
+            sortedScores.sort((a: any, b: any) => b.score - a.score);
+            const topLabel = sortedScores[0].label;
+            const topScore = (sortedScores[0].score * 100).toFixed(1);
+            const isFake = topLabel === "LABEL_1";
+            hfVerdict = `HIGH PRIORITY VERDICT: A specialized BERT job-spam detection AI has already analyzed this post and definitively concluded it is ${isFake ? 'FAKE' : 'REAL'} with ${topScore}% confidence. You MUST align your trustScore and final verdict with this conclusion. Generate the specific red flags that support this verdict.`;
+          }
+        }
+      }
+    } catch (hfErr) {
+      console.error("Hugging Face API Error:", hfErr);
+    }
+
     // Now use Gemini to analyze the text for authenticity
     const prompt = `
     You are an expert cybersecurity and fraud analyst specializing in fake internship detection.
@@ -45,6 +74,8 @@ export async function POST(req: Request) {
     
     INTERNSHIP LISTING TEXT:
     ${textToAnalyze.substring(0, 4000)} // Truncate to save tokens
+
+    ${hfVerdict}
 
     Perform a strict analysis against these 5 checks:
     1. PAYMENT_REQUESTED: Does it ask the applicant to pay money (registration fee, training fee, software fee, deposit)? (Rule: Paying for an internship = SCAM).
