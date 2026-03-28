@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import dbConnect from "@/lib/db/connect"
 import { WeeklyPlan } from "@/lib/db/models/WeeklyPlan"
-import Profile from "@/lib/db/models/Profile"
+
 import CareerRoadmap from "@/lib/db/models/CareerRoadmap"
 import { generateWeeklyPlan } from "@/lib/gemini"
 
@@ -74,16 +74,10 @@ export async function POST() {
       await WeeklyPlan.deleteOne({ _id: existingPlan._id })
     }
 
-    // 2. Fetch the user's active career roadmap and profile
-    const profile = await Profile.findOne({ userId: session.user.id })
-    if (!profile || !profile.targetRole) {
-      return NextResponse.json({ error: "Profile target role not found. Please complete profile." }, { status: 400 })
-    }
-
+    // 2. Fetch the user's latest career roadmap
     const roadmap = await CareerRoadmap.findOne({
       userId: session.user.id,
-      careerPath: profile.targetRole,
-    })
+    }).sort({ generatedAt: -1 })
 
     if (!roadmap) {
       return NextResponse.json({ error: "No roadmap found. Please generate your roadmap first." }, { status: 400 })

@@ -10,6 +10,16 @@
       "source": "googleworkspace/cli",
       "sourceType": "github",
       "computedHash": "7142df5d6834a8ff05d4e4792851d4e1b48b325bc9d9ec540a43806873c85b83"
+    },
+    "remotion-best-practices": {
+      "source": "remotion-dev/skills",
+      "sourceType": "github",
+      "computedHash": "6f22ccc0dd7103de270a465b30e44b001bcee4751e43197bba60680e69928635"
+    },
+    "remotion-render": {
+      "source": "inferen-sh/skills",
+      "sourceType": "github",
+      "computedHash": "1364c39b488438f2758ac0151d319efdc884768f6a2917edca7b14ce84ef7fe9"
     }
   }
 }
