@@ -53,6 +53,11 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [loggingOut, setLoggingOut] = useState(false)
 
+  // Delete account state
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState("")
+  const [deleting, setDeleting] = useState(false)
+
   const userEmail = session?.user?.email || "Not available"
   const userName = session?.user?.name || "Student"
 
@@ -64,6 +69,26 @@ export default function SettingsPage() {
     } catch {
       toast.error("Failed to logout")
       setLoggingOut(false)
+    }
+  }
+
+  async function handleDeleteAccount() {
+    if (deleteConfirmText !== "DELETE") return
+    setDeleting(true)
+    try {
+      const res = await fetch("/api/profile/delete", { method: "DELETE" })
+      if (res.ok) {
+        toast.success("Account deleted successfully")
+        await signOut()
+        router.push("/auth/login")
+      } else {
+        const data = await res.json()
+        toast.error(data.error || "Failed to delete account")
+        setDeleting(false)
+      }
+    } catch {
+      toast.error("Something went wrong. Please try again.")
+      setDeleting(false)
     }
   }
 
@@ -152,14 +177,19 @@ export default function SettingsPage() {
           </button>
 
           {/* Delete */}
-          <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-red-100 bg-red-50/50">
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="flex items-center gap-3 w-full p-4 rounded-xl border-2 border-red-100 bg-red-50/50 hover:bg-red-50 transition-colors text-left"
+          >
             <Trash2 className="w-5 h-5 text-red-500 shrink-0" />
             <div className="flex-1">
               <p className="text-sm font-medium text-red-700">Delete Account</p>
               <p className="text-xs text-red-500/80 mt-0.5">Permanently delete your account and all data. This cannot be undone.</p>
             </div>
-            <Button variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 text-xs h-8 px-3">Delete</Button>
-          </div>
+            <span className="text-xs font-semibold text-red-600 bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 shrink-0">
+              Delete
+            </span>
+          </button>
         </div>
       </AccordionSection>
 
@@ -247,6 +277,68 @@ export default function SettingsPage() {
           Save Changes
         </Button>
       </div>
+
+      {/* ─── Delete Account Confirmation Modal ─── */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden">
+            {/* Modal header */}
+            <div className="p-6 pb-0">
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 text-center" style={{ fontFamily: "var(--font-outfit)" }}>
+                Delete your account?
+              </h3>
+              <p className="text-sm text-gray-500 text-center mt-2 leading-relaxed">
+                This will <span className="font-semibold text-red-600">permanently delete</span> your account and all associated data — quiz history, roadmaps, weekly plans, boost plans, and profile. This action cannot be undone.
+              </p>
+            </div>
+
+            {/* Confirm input */}
+            <div className="p-6 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Type <span className="font-mono font-bold bg-red-50 text-red-600 px-1.5 py-0.5 rounded">DELETE</span> to confirm
+                </label>
+                <Input
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder="Type DELETE here"
+                  className="h-11 border-gray-200 font-mono text-center tracking-widest"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1 h-11 border-gray-200"
+                  onClick={() => { setShowDeleteModal(false); setDeleteConfirmText("") }}
+                  disabled={deleting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1 h-11 bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
+                  disabled={deleteConfirmText !== "DELETE" || deleting}
+                  onClick={handleDeleteAccount}
+                >
+                  {deleting ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Deleting…
+                    </span>
+                  ) : (
+                    "Delete My Account"
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+
